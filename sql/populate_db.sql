@@ -15,5 +15,6 @@ INSERT INTO Ticker (name) VALUES ("AMZN");
 INSERT INTO Ticker (name) VALUES ("FB");
 INSERT INTO Ticker (name) VALUES ("GOOG");
 INSERT INTO Ticker (name) VALUES ("TSLA");
+INSERT INTO Ticker (name) VALUES ("BTC");
 
 SOURCE data/daily_adjusted/insert_candles.sql;

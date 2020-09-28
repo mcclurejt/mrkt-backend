@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"time"
 )
 
@@ -50,4 +52,31 @@ func parseCryptoTimeSeries(resp *http.Response) CryptoTimeSeries {
 	}
 
 	return CryptoTimeSeries{TimeSeries: cryptoTimeSeriesEntries}
+}
+
+func (c CryptoTimeSeries) GetHeaders() []string {
+	e := CryptoTimeSeriesEntry{}           // type
+	t := reflect.ValueOf(&e).Elem().Type() // easily abstracted out -> START
+	r := make([]string, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		r[i] = t.Field(i).Name
+	}
+	return r // easily abstracted out -> END
+}
+
+func (c CryptoTimeSeries) GetValues() [][]string {
+	var r [][]string // easily abstracted out -> START
+	fmt.Printf("%v", c)
+	for _, v := range c.TimeSeries {
+		item := reflect.ValueOf(v)
+		var record []string
+		for i := 0; i < item.NumField(); i++ {
+			itm := item.Field(i).Interface()
+			record = append(record, fmt.Sprintf("%v", itm))
+		}
+		r = append(r, record)
+	}
+	return r // easily abstracted out -> END
+
 }

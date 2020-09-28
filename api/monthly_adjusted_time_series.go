@@ -2,8 +2,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 )
 
 var MonthlyAdjustedTimeSeriesFunction = "TIME_SERIES_MONTHLY_ADJUSTED"
@@ -68,4 +70,30 @@ func parseMonthlyAdjustedTimeSeries(resp *http.Response) MonthlyAdjustedTimeSeri
 
 	return MonthlyAdjustedTimeSeries{Metadata: target.Metadata, TimeSeries: monthlyAdjustedTimeSeriesEntries}
 
+}
+
+func (m MonthlyAdjustedTimeSeries) GetHeaders() []string {
+	e := MonthlyAdjustedTimeSeriesEntry{}  // type
+	t := reflect.ValueOf(&e).Elem().Type() // easily abstracted out -> START
+	r := make([]string, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		r[i] = t.Field(i).Name
+	}
+	return r // easily abstracted out -> END
+}
+
+func (m MonthlyAdjustedTimeSeries) GetValues() [][]string {
+	var r [][]string // easily abstracted out -> START
+	fmt.Printf("%v", m)
+	for _, v := range m.TimeSeries {
+		item := reflect.ValueOf(v)
+		var record []string
+		for i := 0; i < item.NumField(); i++ {
+			itm := item.Field(i).Interface()
+			record = append(record, fmt.Sprintf("%v", itm))
+		}
+		r = append(r, record)
+	}
+	return r // easily abstracted out -> END
 }

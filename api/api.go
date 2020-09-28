@@ -47,5 +47,4 @@ func CallCrypto(metric string, function string, coin string) interface{} {
 	default:
 		return nil
 	}
-
 }
