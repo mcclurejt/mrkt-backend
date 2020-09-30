@@ -1,11 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"io"
 	"log"
 	"os"
 	"strings"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/mcclurejt/mrkt-backend/api"
 	"github.com/mcclurejt/mrkt-backend/encoder"
 )
@@ -16,6 +18,10 @@ var (
 	exit             = os.Exit
 	stderr io.Writer = os.Stderr
 )
+
+type dbStore struct {
+	db *sql.DB
+}
 
 func main() {
 	logger := log.New(stderr, "", log.Lshortfile)
@@ -55,6 +61,26 @@ func main() {
 	}
 
 	logger.Println("COMPLETE")
+	logger.Println("STARTING SERVER")
 
+	db, err := sql.Open("mysql",
+		"root:8jLcJ@PkZDDc3yyuH_4q@tcp(127.0.0.1:3306)/ticker_data")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatal(err)
+	}
+	InitStore(&dbStore{db: db})
+	store.SetupDatabase("ticker_data")
+	for _, t := range tickers {
+		store.LoadCsv(t, "Candle")
+	}
+	for _, c := range coins {
+		store.LoadCsv(strings.ToUpper(c), "Candle")
+	}
+	store.CloseDatabase()
 	exit(0)
 }
