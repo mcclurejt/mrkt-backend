@@ -4,20 +4,27 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/joho/godotenv"
 	"github.com/mcclurejt/mrkt-backend/api"
+	"github.com/mcclurejt/mrkt-backend/config"
 	"github.com/mcclurejt/mrkt-backend/database"
 )
 
-var ALPHAVANTAGE_API_KEY = "LXCN06KPP1KPOYC2"
-var MARKETSTACK_API_KEY = "02378e09665e4a13b514d5cb29855994"
+//env
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
+}
 
 func main() {
-	datasource := "root:1727Clybourn!@tcp(127.0.0.1:3306)/ticker_data"
-	db := database.NewMySqlClient(datasource)
+	conf := config.New() //env
 
-	msClient := api.NewMarketStackClient(MARKETSTACK_API_KEY)
+	db := database.NewMySqlClient(conf.Db.Datasource)
 
-	avClient := api.NewAlphaVantageClient(ALPHAVANTAGE_API_KEY)
+	msClient := api.NewMarketStackClient(conf.Api.MarketStackAPIKey)
+
+	avClient := api.NewAlphaVantageClient(conf.Api.AlphavantageAPIKey)
 
 	err := db.DropAllTables(avClient)
 	if err != nil {
