@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/mcclurejt/mrkt-backend/database"
 )
 
 const MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION = "TIME_SERIES_MONTHLY_ADJUSTED"
@@ -38,7 +40,7 @@ type MonthlyAdjustedTimeSeriesEntry struct {
 
 type MonthlyAdjustedTimeSeriesService interface {
 	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
-	Insert(symbol string) error
+	Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error
 	Sync(symbol string) error
 }
 
@@ -79,7 +81,7 @@ func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTi
 	return ts, nil
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) Insert(symbol string) error {
+func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error {
 	// TODO
 	return nil
 }
