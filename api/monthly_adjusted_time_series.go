@@ -2,11 +2,11 @@ package api
 
 import (
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 )
 
-var MonthlyAdjustedTimeSeriesFunction = "TIME_SERIES_MONTHLY_ADJUSTED"
+const MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION = "TIME_SERIES_MONTHLY_ADJUSTED"
 
 type MonthlyAdjustedTimeSeries struct {
 	Metadata   MonthlyAdjustedTimeSeriesMetadata
@@ -36,23 +36,70 @@ type MonthlyAdjustedTimeSeriesEntry struct {
 	DividendAmount float64 `json:"7. open,string"`
 }
 
-func GetMonthlyAdjustedTimeSeries(symbol string) MonthlyAdjustedTimeSeries {
-	timeSeries := Call(MonthlyAdjustedTimeSeriesFunction, symbol)
-	return timeSeries.(MonthlyAdjustedTimeSeries)
+type MonthlyAdjustedTimeSeriesService interface {
+	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
+	Insert(symbol string) error
+	Sync(symbol string) error
 }
 
-func parseMonthlyAdjustedTimeSeries(resp *http.Response) MonthlyAdjustedTimeSeries {
+type MonthlyAdjustedTimeSeriesServiceOptions struct {
+	Symbol string
+}
+
+func newMonthlyAdjustedTimeSeriesServiceOptions(symbol string) MonthlyAdjustedTimeSeriesServiceOptions {
+	return MonthlyAdjustedTimeSeriesServiceOptions{Symbol: symbol}
+}
+
+func (o MonthlyAdjustedTimeSeriesServiceOptions) ToQueryString() string {
+	return fmt.Sprintf("&function=%s&symbol=%s", MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION, o.Symbol)
+}
+
+type monthlyAdjustedTimeSeriesServicer struct {
+	base baseClient
+}
+
+func newMonthlyAdjustedTimeSeriesService(base baseClient) MonthlyAdjustedTimeSeriesService {
+	return monthlyAdjustedTimeSeriesServicer{
+		base: base,
+	}
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTimeSeries, error) {
+	options := newMonthlyAdjustedTimeSeriesServiceOptions(symbol)
+	resp, err := s.base.call(options)
+	if err != nil {
+		return MonthlyAdjustedTimeSeries{}, err
+	}
+
+	ts, err := parseMonthlyAdjustedTimeSeries(resp)
+	if err != nil {
+		return MonthlyAdjustedTimeSeries{}, err
+	}
+
+	return ts, nil
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) Insert(symbol string) error {
+	// TODO
+	return nil
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string) error {
+	// TODO
+	return nil
+}
+
+func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSeries, error) {
 	target := &MonthlyAdjustedTimeSeriesResponse{}
 	err := json.NewDecoder(resp.Body).Decode(target)
 	if err != nil {
-		log.Fatalln(err)
+		return MonthlyAdjustedTimeSeries{}, err
 	}
 
 	timeSeries := target.MonthlyAdjustedTimeSeries
 
 	// slice to hold keys
 	keys := make([]string, len(timeSeries))
-
 	i := 0
 	for k, _ := range timeSeries {
 		keys[i] = k
@@ -66,6 +113,5 @@ func parseMonthlyAdjustedTimeSeries(resp *http.Response) MonthlyAdjustedTimeSeri
 		monthlyAdjustedTimeSeriesEntries[i] = entry
 	}
 
-	return MonthlyAdjustedTimeSeries{Metadata: target.Metadata, TimeSeries: monthlyAdjustedTimeSeriesEntries}
-
+	return MonthlyAdjustedTimeSeries{Metadata: target.Metadata, TimeSeries: monthlyAdjustedTimeSeriesEntries}, nil
 }
