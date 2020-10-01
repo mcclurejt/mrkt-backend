@@ -14,9 +14,29 @@ const (
 )
 
 var (
+	MONTHLY_ADJUSTED_TIME_SERIES_HEADERS = []string{
+		"id",
+		"date",
+		"open",
+		"high",
+		"low",
+		"close",
+		"adjusted_close",
+		"volume",
+		"dividend_amount",
+	}
 	MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS = []string{
-		"id VARCHAR(8) NOT NULL",
-		""
+		"id INT",
+		"date DATE NOT NULL",
+		"open FLOAT NOT NULL",
+		"high FLOAT NOT NULL",
+		"low FLOAT NOT NULL",
+		"close FLOAT NOT NULL",
+		"adjusted_close FLOAT NOT NULL",
+		"volume INT NOT NULL",
+		"dividend_amount FLOAT NOT NULL",
+		"FOREIGN KEY (id) REFERENCES Ticker(id)",
+		"PRIMARY KEY (id, date)",
 	}
 )
 
@@ -50,10 +70,10 @@ type MonthlyAdjustedTimeSeriesEntry struct {
 
 type MonthlyAdjustedTimeSeriesService interface {
 	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
-	Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error
-	Sync(symbol string) error
-	CreateTable(db database.Client) error
-	DropTable(db database.Client) error
+	Insert(ts MonthlyAdjustedTimeSeries, db database.SQLClient) error
+	Sync(symbol string, db database.SQLClient) error
+	CreateTable(db database.SQLClient) error
+	DropTable(db database.SQLClient) error
 }
 
 type monthlyAdjustedTimeSeriesServiceOptions struct {
@@ -93,33 +113,37 @@ func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTi
 	return ts, nil
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error {
-	headers := []string{"name", "date", "open", "high", "low", "close"}
+func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, db database.SQLClient) error {
+	tickerID, err := db.GetTickerID(ts.Metadata.Symbol)
+	if err != nil {
+		return err
+	}
 	values := make([]interface{}, 0)
 	for _, v := range ts.TimeSeries {
-		values = append(values, ts.Metadata.Symbol)
+		values = append(values, tickerID)
 		values = append(values, v.Date)
 		values = append(values, v.Open)
 		values = append(values, v.High)
 		values = append(values, v.Low)
 		values = append(values, v.Close)
+		values = append(values, v.AdjustedClose)
+		values = append(values, v.Volume)
+		values = append(values, v.DividendAmount)
 	}
 	return nil
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string) error {
+func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string, db database.SQLClient) error {
 	// TODO
 	return nil
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) CreateTable(db database.Client) error {
-	db.CreateTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME, )
-	return nil
+func (s monthlyAdjustedTimeSeriesServicer) CreateTable(db database.SQLClient) error {
+	return db.CreateTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME, MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS)
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) DropTable(db database.Client) error {
-	// TODO
-	return nil
+func (s monthlyAdjustedTimeSeriesServicer) DropTable(db database.SQLClient) error {
+	return db.DropTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME)
 }
 
 func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSeries, error) {
@@ -134,7 +158,7 @@ func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSer
 	// slice to hold keys
 	keys := make([]string, len(timeSeries))
 	i := 0
-	for k, _ := range timeSeries {
+	for k := range timeSeries {
 		keys[i] = k
 		i++
 	}
