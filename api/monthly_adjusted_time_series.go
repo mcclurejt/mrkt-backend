@@ -42,15 +42,15 @@ type MonthlyAdjustedTimeSeriesService interface {
 	Sync(symbol string) error
 }
 
-type MonthlyAdjustedTimeSeriesServiceOptions struct {
+type monthlyAdjustedTimeSeriesServiceOptions struct {
 	Symbol string
 }
 
-func newMonthlyAdjustedTimeSeriesServiceOptions(symbol string) MonthlyAdjustedTimeSeriesServiceOptions {
-	return MonthlyAdjustedTimeSeriesServiceOptions{Symbol: symbol}
+func newMonthlyAdjustedTimeSeriesServiceOptions(symbol string) monthlyAdjustedTimeSeriesServiceOptions {
+	return monthlyAdjustedTimeSeriesServiceOptions{Symbol: symbol}
 }
 
-func (o MonthlyAdjustedTimeSeriesServiceOptions) ToQueryString() string {
+func (o monthlyAdjustedTimeSeriesServiceOptions) ToQueryString() string {
 	return fmt.Sprintf("&function=%s&symbol=%s", MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION, o.Symbol)
 }
 
