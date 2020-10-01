@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mcclurejt/mrkt-backend/database"
 )
@@ -115,6 +116,11 @@ func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTi
 
 	ts, err := parseMonthlyAdjustedTimeSeries(resp)
 	if err != nil {
+		_, ok := err.(*AlphaVantageRateExceededError)
+		if ok {
+			time.Sleep(DEFAULT_RETRY_PERIOD_SECONDS * time.Second)
+			return s.Get(symbol)
+		}
 		return MonthlyAdjustedTimeSeries{}, err
 	}
 
@@ -154,6 +160,11 @@ func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSer
 	}
 
 	timeSeries := target.MonthlyAdjustedTimeSeries
+
+	// check to see if the rate was exceeded and no objects were returned (still gives 200 status code)
+	if len(timeSeries) < 1 {
+		return MonthlyAdjustedTimeSeries{}, &AlphaVantageRateExceededError{}
+	}
 
 	// slice to hold keys
 	keys := make([]string, len(timeSeries))

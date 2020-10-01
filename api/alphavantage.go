@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	DEFAULT_BASE_URL        = "https://www.alphavantage.co/query?"
-	DEFAULT_TIMEOUT_SECONDS = 60
+	DEFAULT_BASE_URL             = "https://www.alphavantage.co/query?"
+	DEFAULT_TIMEOUT_SECONDS      = 60
+	DEFAULT_RETRY_PERIOD_SECONDS = 60
 )
 
 type AlphaVantageClient struct {
@@ -32,7 +33,8 @@ type alphaVantageBaseClient struct {
 
 func (a alphaVantageBaseClient) call(options requestOptions) (*http.Response, error) {
 	url := DEFAULT_BASE_URL + fmt.Sprintf("apikey=%s", a.apiKey) + options.ToQueryString()
-	return a.httpClient.Get(url)
+	resp, err := a.httpClient.Get(url)
+	return resp, err
 }
 
 func newAlphaVantageBaseClient(apiKey string) baseClient {

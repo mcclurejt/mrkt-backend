@@ -39,7 +39,7 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	tickers, err := msClient.TickerService.Get(api.EXCHANGE_NYSE, 5, 0)
+	tickers, err := msClient.TickerService.Get(api.EXCHANGE_NYSE, 20, 0)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
