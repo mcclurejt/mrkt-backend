@@ -13,6 +13,7 @@ const (
 type GlassNodeClient struct {
 	base baseClient
 
+	CoinService                    CoinService
 	NetUnrealizedProfitLossService NetUnrealizedProfitLossService
 }
 
@@ -20,6 +21,7 @@ func NewGlassNodeClient(apiKey string) GlassNodeClient {
 	base := newGlassNodeBaseClient(apiKey)
 	return GlassNodeClient{
 		base:                           base,
+		CoinService:                    newCoinService(base),
 		NetUnrealizedProfitLossService: newNetUnrealizedProfitLossService(base),
 	}
 }
@@ -30,7 +32,7 @@ type glassNodeBaseClient struct {
 }
 
 func (g glassNodeBaseClient) call(options requestOptions) (*http.Response, error) {
-	url := GLASSNODE_BASE_URL + options.ToQueryString() + fmt.Sprintf("&apikey=%s", g.apiKey)
+	url := GLASSNODE_BASE_URL + options.ToQueryString() + fmt.Sprintf("&api_key=%s", g.apiKey)
 	resp, err := g.httpClient.Get(url)
 	return resp, err
 }

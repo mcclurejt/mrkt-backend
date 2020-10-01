@@ -84,7 +84,7 @@ func (m MySqlClient) DropTable(aps AssetPropertyService) error {
 
 func (m MySqlClient) DropAllTables(client interface{}) error {
 	val := reflect.ValueOf(client)
-	for i := 0; i < val.NumField(); i++ {
+	for i := val.NumField() - 1; i >= 0; i-- {
 		f := val.Field(i)
 		if f.CanInterface() {
 			service, ok := f.Interface().(AssetPropertyService)
@@ -143,6 +143,22 @@ func (m MySqlClient) GetTickerID(ticker string) (int, error) {
 		return -1, err
 	}
 	return tickerID, nil
+}
+
+const GET_COIN_QUERY = `SELECT cid FROM Coin WHERE symbol="%s"`
+
+func (m MySqlClient) GetCoinID(coin string) (int, error) {
+	if !m.HasTable("Coin") {
+		return -1, errors.New("Coin table does not exist")
+	}
+
+	query := fmt.Sprintf(GET_COIN_QUERY, coin)
+	var coinID int
+	err := m.db.QueryRow(query).Scan(&coinID)
+	if err != nil {
+		return -1, err
+	}
+	return coinID, nil
 }
 
 func (m MySqlClient) Query(query string) (*sql.Rows, error) {
