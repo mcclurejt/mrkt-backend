@@ -69,11 +69,11 @@ type MonthlyAdjustedTimeSeriesEntry struct {
 }
 
 type MonthlyAdjustedTimeSeriesService interface {
+	GetTableName() string
+	GetTableColumns() []string
 	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
 	Insert(ts MonthlyAdjustedTimeSeries, db database.SQLClient) error
 	Sync(symbol string, db database.SQLClient) error
-	CreateTable(db database.SQLClient) error
-	DropTable(db database.SQLClient) error
 }
 
 type monthlyAdjustedTimeSeriesServiceOptions struct {
@@ -96,6 +96,14 @@ func newMonthlyAdjustedTimeSeriesService(base baseClient) MonthlyAdjustedTimeSer
 	return monthlyAdjustedTimeSeriesServicer{
 		base: base,
 	}
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) GetTableName() string {
+	return MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) GetTableColumns() []string {
+	return MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTimeSeries, error) {
@@ -136,14 +144,6 @@ func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, 
 func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string, db database.SQLClient) error {
 	// TODO
 	return nil
-}
-
-func (s monthlyAdjustedTimeSeriesServicer) CreateTable(db database.SQLClient) error {
-	return db.CreateTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME, MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS)
-}
-
-func (s monthlyAdjustedTimeSeriesServicer) DropTable(db database.SQLClient) error {
-	return db.DropTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME)
 }
 
 func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSeries, error) {
