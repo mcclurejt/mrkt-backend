@@ -31,10 +31,10 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	err = db.DropAllTables(msClient)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	// err := db.DropAllTables(msClient)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
 
 	err = db.CreateAllTables(msClient)
 	if err != nil {
@@ -51,20 +51,30 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	fmt.Println(tickers.Data)
-
 	err = msClient.TickerService.Insert(tickers, db)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	for _, v := range tickers.Data {
-		fmt.Println(v)
-		ts, err := avClient.MonthlyAdjustedTimeSeriesService.Get(v)
+	rows, err := db.Query("SELECT name FROM Ticker")
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	var name string
+	defer rows.Close()
+	for rows.Next() {
+		err := rows.Scan(&name)
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
-		err = avClient.MonthlyAdjustedTimeSeriesService.Insert(ts, db)
+		fmt.Println("Starting Get")
+		co, err := avClient.CompanyOverviewService.Get(name)
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+
+		fmt.Println("Starting Insert")
+		err = avClient.CompanyOverviewService.Insert(co, db)
 		if err != nil {
 			log.Fatalln(err.Error())
 		}

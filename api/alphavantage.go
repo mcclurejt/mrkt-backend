@@ -16,6 +16,7 @@ type AlphaVantageClient struct {
 	base baseClient
 
 	MonthlyAdjustedTimeSeriesService MonthlyAdjustedTimeSeriesService
+	CompanyOverviewService           CompanyOverviewService
 }
 
 func NewAlphaVantageClient(apiKey string) AlphaVantageClient {
@@ -23,6 +24,7 @@ func NewAlphaVantageClient(apiKey string) AlphaVantageClient {
 	return AlphaVantageClient{
 		base:                             base,
 		MonthlyAdjustedTimeSeriesService: newMonthlyAdjustedTimeSeriesService(base),
+		CompanyOverviewService:           newCompanyOverviewService(base),
 	}
 }
 
