@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/mcclurejt/mrkt-backend/database"
 )
@@ -119,7 +120,7 @@ func parseTickers(resp *http.Response) (Tickers, error) {
 
 	ts := make([]string, len(target.Data))
 	for i, t := range target.Data {
-		ts[i] = t.Symbol
+		ts[i] = strings.Replace(t.Symbol, ".", "-", -1)
 	}
 	return Tickers{Data: ts}, nil
 }

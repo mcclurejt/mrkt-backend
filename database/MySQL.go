@@ -120,6 +120,7 @@ func (m MySqlClient) Insert(tableName string, headers []string, values []interfa
 	headerString := "(" + strings.Join(headers, ",") + ")"
 
 	query := fmt.Sprintf(INSERT_QUERY, tableName, headerString, strings.Join(valueStrings, ","))
+
 	_, err := m.db.Exec(query, values...)
 	if err != nil {
 		return err

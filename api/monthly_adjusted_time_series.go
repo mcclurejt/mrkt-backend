@@ -27,7 +27,7 @@ var (
 		"dividend_amount",
 	}
 	MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS = []string{
-		"id INT",
+		"id INT NOT NULL",
 		"date DATE NOT NULL",
 		"open FLOAT NOT NULL",
 		"high FLOAT NOT NULL",
