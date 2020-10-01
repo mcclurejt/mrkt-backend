@@ -33,7 +33,7 @@ var (
 		"low FLOAT NOT NULL",
 		"close FLOAT NOT NULL",
 		"adjusted_close FLOAT NOT NULL",
-		"volume INT NOT NULL",
+		"volume BIGINT NOT NULL",
 		"dividend_amount FLOAT NOT NULL",
 		"FOREIGN KEY (id) REFERENCES Ticker(id)",
 		"PRIMARY KEY (id, date)",
@@ -138,7 +138,7 @@ func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, 
 		values = append(values, v.Volume)
 		values = append(values, v.DividendAmount)
 	}
-	return nil
+	return db.Insert(s.GetTableName(), MONTHLY_ADJUSTED_TIME_SERIES_HEADERS, values)
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string, db database.SQLClient) error {

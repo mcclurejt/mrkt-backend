@@ -4,6 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/mcclurejt/mrkt-backend/database"
+)
+
+const (
+	EXCHANGE_NYSE   = "XNYS"
+	EXCHANGE_NASDAQ = "XNAS"
 )
 
 const (
@@ -15,8 +22,11 @@ var (
 		"id",
 		"name",
 	}
+	TICKER_INSERTION_HEADERS = []string{
+		"name",
+	}
 	TICKER_COLUMNS = []string{
-		"int INT NOT NULL AUTO_INCREMENT PRIMARY KEY",
+		"id INT NOT NULL AUTO_INCREMENT PRIMARY KEY",
 		"name VARCHAR (8) NOT NULL UNIQUE",
 	}
 )
@@ -34,7 +44,11 @@ type TickerEntry struct {
 }
 
 type TickerService interface {
+	GetTableName() string
+	GetTableColumns() []string
 	Get(exchange string, limit int, offset int) (Tickers, error)
+	Insert(t Tickers, db database.SQLClient) error
+	Sync(exchange string, limit int, offset int, db database.SQLClient) error
 }
 
 type tickerServiceOptions struct {
@@ -61,6 +75,14 @@ func newTickerService(base baseClient) TickerService {
 	}
 }
 
+func (s tickerServicer) GetTableName() string {
+	return TICKER_TABLE_NAME
+}
+
+func (s tickerServicer) GetTableColumns() []string {
+	return TICKER_COLUMNS
+}
+
 func (s tickerServicer) Get(exchange string, limit int, offset int) (Tickers, error) {
 	options := newTickerServiceOptions(exchange, limit, offset)
 	resp, err := s.base.call(options)
@@ -73,6 +95,19 @@ func (s tickerServicer) Get(exchange string, limit int, offset int) (Tickers, er
 		return Tickers{}, err
 	}
 	return ts, nil
+}
+
+func (s tickerServicer) Insert(t Tickers, db database.SQLClient) error {
+	values := make([]interface{}, len(t.Data))
+	for i, v := range t.Data {
+		values[i] = v
+	}
+	return db.Insert(s.GetTableName(), TICKER_INSERTION_HEADERS, values)
+}
+
+func (s tickerServicer) Sync(exchange string, limit int, offset int, db database.SQLClient) error {
+	//TODO
+	return nil
 }
 
 func parseTickers(resp *http.Response) (Tickers, error) {
