@@ -23,8 +23,8 @@ func main() {
 	db := database.NewMySqlClient(conf.Db.Datasource)
 
 	msClient := api.NewMarketStackClient(conf.Api.MarketStackAPIKey)
-
 	avClient := api.NewAlphaVantageClient(conf.Api.AlphavantageAPIKey)
+	gnClient := api.NewGlassNodeClient(conf.Api.GlassNodeAPIKey)
 
 	err := db.DropAllTables(avClient)
 	if err != nil {
@@ -35,6 +35,14 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println(err.Error())
 	// }
+<<<<<<< HEAD
+=======
+
+	err = db.DropAllTables(gnClient)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+>>>>>>> feature/glassnode/NUPL
 
 	err = db.CreateAllTables(msClient)
 	if err != nil {
@@ -46,7 +54,7 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	tickers, err := msClient.TickerService.Get(api.EXCHANGE_NYSE, 20, 0)
+	err = db.CreateAllTables(gnClient)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -78,6 +86,24 @@ func main() {
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
+
+	}
+	//crypto
+	cs := []string{"BTC", "ETH"}
+	coins := api.Coins{Data: cs}
+	fmt.Println(coins.Data)
+
+	err = gnClient.CoinService.Insert(coins, db)
+	if err != nil {
+		log.Fatalln(err.Error())
 	}
 
+	ns, err := gnClient.NetUnrealizedProfitLossService.Get("btc", "24h")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	err = gnClient.NetUnrealizedProfitLossService.Insert("btc", ns, db)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
 }

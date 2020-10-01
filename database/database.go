@@ -21,4 +21,5 @@ type SQLClient interface {
 	// Queries
 	Query(query string) (*sql.Rows, error)
 	GetTickerID(ticker string) (int, error)
+	GetCoinID(coin string) (int, error)
 }
