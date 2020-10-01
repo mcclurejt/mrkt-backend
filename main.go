@@ -12,13 +12,13 @@ var API_KEY = "LXCN06KPP1KPOYC2"
 
 func main() {
 	s := "AAPL"
-	datasource := "root:8jLcJ@PkZDDc3yyuH_4q@tcp(127.0.0.1:3306)/ticker_data"
-	db := database.New(datasource)
+	datasource := "root:1727Clybourn!@tcp(127.0.0.1:3306)/ticker_data"
+	db := database.MySql.New(datasource)
 
 	client := api.NewAlphaVantageClient(API_KEY)
 	ts, _ := client.MonthlyAdjustedTimeSeriesService.Get(s)
 	headers := []string{"name", "date", "open", "high", "low", "close"}
-	values := make([]interface{}, len(headers)*len(ts.TimeSeries))
+	values := make([]interface{}, 0)
 	for _, v := range ts.TimeSeries {
 		values = append(values, ts.Metadata.Symbol)
 		values = append(values, v.Date)
@@ -27,6 +27,7 @@ func main() {
 		values = append(values, v.Low)
 		values = append(values, v.Close)
 	}
+	fmt.Println(values)
 
 	res, _ := db.Db.Query("SHOW Tables;")
 	for res.Next() {
@@ -36,7 +37,7 @@ func main() {
 		fmt.Println(tableName)
 	}
 	_, err := db.Db.Exec("USE ticker_data;")
-	_, err = db.Db.Exec("CREATE TABLE IF NOT EXISTS MonthlyAdjustedTimeSeries (name VARCHAR(8) NOT NULL, date DATE NOT NULL, open FLOAT NOT NULL, high FLOAT NOT NULL, low FLOAT NOT NULL, close FLOAT NOT NULL, PRIMARY KEY (name, date));")
+	_, err = db.Db.Exec("CREATE TABLE IF NOT EXISTS MonthlyAdjustedTimeSeries(name VARCHAR(8) NOT NULL, date DATE NOT NULL, open FLOAT NOT NULL, high FLOAT NOT NULL, low FLOAT NOT NULL, close FLOAT NOT NULL, PRIMARY KEY (name, date));")
 
 	err = db.Insert("MonthlyAdjustedTimeSeries", headers, values)
 	if err != nil {

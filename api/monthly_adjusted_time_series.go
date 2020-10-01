@@ -8,7 +8,17 @@ import (
 	"github.com/mcclurejt/mrkt-backend/database"
 )
 
-const MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION = "TIME_SERIES_MONTHLY_ADJUSTED"
+const (
+	MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION   = "TIME_SERIES_MONTHLY_ADJUSTED"
+	MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME = "MonthlyAdjustedTimeSeries"
+)
+
+var (
+	MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS = []string{
+		"id VARCHAR(8) NOT NULL",
+		""
+	}
+)
 
 type MonthlyAdjustedTimeSeries struct {
 	Metadata   MonthlyAdjustedTimeSeriesMetadata
@@ -42,6 +52,8 @@ type MonthlyAdjustedTimeSeriesService interface {
 	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
 	Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error
 	Sync(symbol string) error
+	CreateTable(db database.Client) error
+	DropTable(db database.Client) error
 }
 
 type monthlyAdjustedTimeSeriesServiceOptions struct {
@@ -82,11 +94,30 @@ func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTi
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, db database.Client) error {
-	// TODO
+	headers := []string{"name", "date", "open", "high", "low", "close"}
+	values := make([]interface{}, 0)
+	for _, v := range ts.TimeSeries {
+		values = append(values, ts.Metadata.Symbol)
+		values = append(values, v.Date)
+		values = append(values, v.Open)
+		values = append(values, v.High)
+		values = append(values, v.Low)
+		values = append(values, v.Close)
+	}
 	return nil
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string) error {
+	// TODO
+	return nil
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) CreateTable(db database.Client) error {
+	db.CreateTable(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME, )
+	return nil
+}
+
+func (s monthlyAdjustedTimeSeriesServicer) DropTable(db database.Client) error {
 	// TODO
 	return nil
 }
