@@ -35,14 +35,11 @@ func main() {
 	// if err != nil {
 	// 	fmt.Println(err.Error())
 	// }
-<<<<<<< HEAD
-=======
 
 	err = db.DropAllTables(gnClient)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
->>>>>>> feature/glassnode/NUPL
 
 	err = db.CreateAllTables(msClient)
 	if err != nil {
@@ -59,10 +56,10 @@ func main() {
 		fmt.Println(err.Error())
 	}
 
-	err = msClient.TickerService.Insert(tickers, db)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	//	err = msClient.TickerService.Insert(tickers, db)
+	//	if err != nil {
+	//		fmt.Println(err.Error())
+	//	}
 
 	rows, err := db.Query("SELECT name FROM Ticker")
 	if err != nil {
