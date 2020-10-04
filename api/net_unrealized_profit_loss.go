@@ -121,11 +121,9 @@ func parseNetUnrealizedProfitLoss(resp *http.Response) (NetUnrealizedProfitLoss,
 	}
 
 	timeSeries := target
-
 	netUnrealizedProfitLossEntries := make([]NetUnrealizedProfitLossEntry, len(*timeSeries))
 	for i, v := range *timeSeries {
-		entry := v
-		netUnrealizedProfitLossEntries[i] = entry
+		netUnrealizedProfitLossEntries[i] = v
 	}
 
 	return NetUnrealizedProfitLoss{TimeSeries: netUnrealizedProfitLossEntries}, nil
