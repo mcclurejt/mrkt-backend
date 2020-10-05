@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"errors"
 	"reflect"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -8,7 +9,7 @@ import (
 	attribute "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-const defaultBillingMode = db.BillingModePayPerRequest
+const DefaultBillingMode = db.BillingModePayPerRequest
 
 type DataProvider interface {
 	GetCreateTableInput() *db.CreateTableInput
@@ -66,8 +67,8 @@ func (c *Client) ListTables() (*db.ListTablesOutput, error) {
 	return c.base.ListTables(input)
 }
 
-// PutItem - Adds an item in the specified table using the configuration provided by the DynamodbDataProvider's GetPutItemInput()
-func (c *Client) PutItem(item interface{}, p DataProvider) error {
+// PutItem - Adds an item in the specified table using the configuration provided by the DataProvider's GetPutItemInput()
+func (c *Client) PutItem(p DataProvider, item interface{}) error {
 	av, err := attribute.MarshalMap(item)
 	if err != nil {
 		return err
@@ -78,6 +79,28 @@ func (c *Client) PutItem(item interface{}, p DataProvider) error {
 	_, err = c.base.PutItem(input)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// PutAllItems - Adds each item from the list using the configuration provided by the DataProvider
+func (c *Client) PutAllItems(p DataProvider, items interface{}) error {
+	val := reflect.ValueOf(items)
+	if val.Kind() != reflect.Slice {
+		return errors.New("Must pass in a slice")
+	}
+
+	slice := make([]interface{}, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		slice[i] = val.Index(i).Interface()
+	}
+
+	var err error
+	for _, item := range slice {
+		err = c.PutItem(p, item)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

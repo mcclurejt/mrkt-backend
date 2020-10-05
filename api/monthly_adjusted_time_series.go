@@ -6,39 +6,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/mcclurejt/mrkt-backend/database"
+	db "github.com/mcclurejt/mrkt-backend/database/dynamodb"
 )
 
 const (
 	MONTHLY_ADJUSTED_TIME_SERIES_FUNCTION   = "TIME_SERIES_MONTHLY_ADJUSTED"
 	MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME = "MonthlyAdjustedTimeSeries"
-)
-
-var (
-	MONTHLY_ADJUSTED_TIME_SERIES_HEADERS = []string{
-		"id",
-		"date",
-		"open",
-		"high",
-		"low",
-		"close",
-		"adjusted_close",
-		"volume",
-		"dividend_amount",
-	}
-	MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS = []string{
-		"id INT NOT NULL",
-		"date DATE NOT NULL",
-		"open FLOAT NOT NULL",
-		"high FLOAT NOT NULL",
-		"low FLOAT NOT NULL",
-		"close FLOAT NOT NULL",
-		"adjusted_close FLOAT NOT NULL",
-		"volume BIGINT NOT NULL",
-		"dividend_amount FLOAT NOT NULL",
-		"FOREIGN KEY (id) REFERENCES Ticker(id)",
-		"PRIMARY KEY (id, date)",
-	}
 )
 
 type MonthlyAdjustedTimeSeries struct {
@@ -60,6 +36,7 @@ type MonthlyAdjustedTimeSeriesMetadata struct {
 
 type MonthlyAdjustedTimeSeriesEntry struct {
 	Date           string
+	Symbol         string
 	Open           float64 `json:"1. open,string"`
 	High           float64 `json:"2. high,string"`
 	Low            float64 `json:"3. low,string"`
@@ -70,10 +47,10 @@ type MonthlyAdjustedTimeSeriesEntry struct {
 }
 
 type MonthlyAdjustedTimeSeriesService interface {
-	GetTableName() string
-	GetTableColumns() []string
+	GetCreateTableInput() *dynamodb.CreateTableInput
+	GetPutItemInput() *dynamodb.PutItemInput
+
 	Get(symbol string) (MonthlyAdjustedTimeSeries, error)
-	Insert(ts MonthlyAdjustedTimeSeries, db database.SQLClient) error
 	Sync(symbol string, db database.SQLClient) error
 }
 
@@ -99,12 +76,37 @@ func newMonthlyAdjustedTimeSeriesService(base baseClient) MonthlyAdjustedTimeSer
 	}
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) GetTableName() string {
-	return MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME
+func (s monthlyAdjustedTimeSeriesServicer) GetCreateTableInput() *dynamodb.CreateTableInput {
+	return &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("Date"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("Symbol"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("Date"),
+				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("Symbol"),
+				KeyType:       aws.String("RANGE"),
+			},
+		},
+		BillingMode: aws.String(db.DefaultBillingMode),
+		TableName:   aws.String(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME),
+	}
 }
 
-func (s monthlyAdjustedTimeSeriesServicer) GetTableColumns() []string {
-	return MONTHLY_ADJUSTED_TIME_SERIES_COLUMNS
+func (s monthlyAdjustedTimeSeriesServicer) GetPutItemInput() *dynamodb.PutItemInput {
+	return &dynamodb.PutItemInput{
+		TableName: aws.String(MONTHLY_ADJUSTED_TIME_SERIES_TABLE_NAME),
+	}
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTimeSeries, error) {
@@ -125,26 +127,6 @@ func (s monthlyAdjustedTimeSeriesServicer) Get(symbol string) (MonthlyAdjustedTi
 	}
 
 	return ts, nil
-}
-
-func (s monthlyAdjustedTimeSeriesServicer) Insert(ts MonthlyAdjustedTimeSeries, db database.SQLClient) error {
-	tickerID, err := db.GetTickerID(ts.Metadata.Symbol)
-	if err != nil {
-		return err
-	}
-	values := make([]interface{}, 0)
-	for _, v := range ts.TimeSeries {
-		values = append(values, tickerID)
-		values = append(values, v.Date)
-		values = append(values, v.Open)
-		values = append(values, v.High)
-		values = append(values, v.Low)
-		values = append(values, v.Close)
-		values = append(values, v.AdjustedClose)
-		values = append(values, v.Volume)
-		values = append(values, v.DividendAmount)
-	}
-	return db.Insert(s.GetTableName(), MONTHLY_ADJUSTED_TIME_SERIES_HEADERS, values)
 }
 
 func (s monthlyAdjustedTimeSeriesServicer) Sync(symbol string, db database.SQLClient) error {
@@ -178,6 +160,7 @@ func parseMonthlyAdjustedTimeSeries(resp *http.Response) (MonthlyAdjustedTimeSer
 	for i, key := range keys {
 		entry := timeSeries[key]
 		entry.Date = key
+		entry.Symbol = target.Metadata.Symbol
 		monthlyAdjustedTimeSeriesEntries[i] = entry
 	}
 

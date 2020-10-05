@@ -10,141 +10,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mcclurejt/mrkt-backend/database"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	db "github.com/mcclurejt/mrkt-backend/database/dynamodb"
 )
 
 const (
 	COMPANY_OVERVIEW_FUNCTION   = "OVERVIEW"
 	COMPANY_OVERVIEW_TABLE_NAME = "CompanyOverview"
-)
-
-var (
-	COMPANY_OVERVIEW_HEADERS = []string{
-		"ID",
-		"Name",
-		"AssetType",
-		"Description",
-		"Symbol",
-		"Exchange",
-		"Currency",
-		"Country",
-		"Sector",
-		"Industry",
-		"Address",
-		"FullTimeEmployees",
-		"FiscalYearEnd",
-		"LatestQuarter",
-		"MarketCapitalization",
-		"EBITDA",
-		"PERatio",
-		"PEGRatio",
-		"BookValue",
-		"DividendPerShare",
-		"DividendYield",
-		"EPS",
-		"RevenuePerShareTTM",
-		"ProfitMargin",
-		"OperatingMarginTTM",
-		"ReturnOnAssetsTTM",
-		"ReturnOnEquityTTM",
-		"RevenueTTM",
-		"GrossProfitTTM",
-		"DilutedEPSTTM",
-		"QuarterlyEarningsGrowthYOY",
-		"QuarterlyRevenueGrowthYOY",
-		"AnalystTargetPrice",
-		"TrailingPE",
-		"ForwardPE",
-		"PriceToSalesRatioTTM",
-		"PriceToBookRatio",
-		"EVToRevenue",
-		"EvToEBITDA",
-		"Beta",
-		"FiftyTwoWeekHigh",
-		"FiftyTwoWeekLow",
-		"FiftyDayMovingAverage",
-		"TwoHundredDayMovingAverage",
-		"SharesOutstanding",
-		"SharesFloat",
-		"SharesShort",
-		"SharesShortPriorMonth",
-		"ShortRatio",
-		"ShortPercentOutstanding",
-		"ShortPercentFloat",
-		"PercentInsiders",
-		"PercentInstitutions",
-		"ForwardAnnualDividendRate",
-		"ForwardAnnualDividendYield",
-		"PayoutRatio",
-		"DividendDate",
-		"ExDividendDate",
-		"LastSplitFactor",
-		"LastSplitDate",
-	}
-	COMPANY_OVERVIEW_COLUMNS = []string{
-		"ID INT NOT NULL UNIQUE",
-		"Name VARCHAR(64) NOT NULL",
-		"AssetType VARCHAR(32)",
-		"Description TEXT",
-		"Symbol VARCHAR(8)",
-		"Exchange VARCHAR(32)",
-		"Currency VARCHAR(8)",
-		"Country VARCHAR(32)",
-		"Sector VARCHAR(32)",
-		"Industry VARCHAR(32)",
-		"Address TEXT",
-		"FullTimeEmployees INT",
-		"FiscalYearEnd DATE",
-		"LatestQuarter DATE",
-		"MarketCapitalization BIGINT",
-		"EBITDA BIGINT",
-		"PERatio FLOAT",
-		"PEGRatio FLOAT",
-		"BookValue FLOAT",
-		"DividendPerShare FLOAT",
-		"DividendYield FLOAT",
-		"EPS FLOAT",
-		"RevenuePerShareTTM FLOAT",
-		"ProfitMargin FLOAT",
-		"OperatingMarginTTM FLOAT",
-		"ReturnOnAssetsTTM FLOAT",
-		"ReturnOnEquityTTM FLOAT",
-		"RevenueTTM BIGINT",
-		"GrossProfitTTM BIGINT",
-		"DilutedEPSTTM FLOAT",
-		"QuarterlyEarningsGrowthYOY FLOAT",
-		"QuarterlyRevenueGrowthYOY FLOAT",
-		"AnalystTargetPrice FLOAT",
-		"TrailingPE FLOAT",
-		"ForwardPE FLOAT",
-		"PriceToSalesRatioTTM FLOAT",
-		"PriceToBookRatio FLOAT",
-		"EVToRevenue FLOAT",
-		"EvToEBITDA FLOAT",
-		"Beta FLOAT",
-		"FiftyTwoWeekHigh FLOAT",
-		"FiftyTwoWeekLow FLOAT",
-		"FiftyDayMovingAverage FLOAT",
-		"TwoHundredDayMovingAverage FLOAT",
-		"SharesOutstanding BIGINT",
-		"SharesFloat BIGINT",
-		"SharesShort BIGINT",
-		"SharesShortPriorMonth BIGINT",
-		"ShortRatio FLOAT",
-		"ShortPercentOutstanding FLOAT",
-		"ShortPercentFloat FLOAT",
-		"PercentInsiders FLOAT",
-		"PercentInstitutions FLOAT",
-		"ForwardAnnualDividendRate FLOAT",
-		"ForwardAnnualDividendYield FLOAT",
-		"PayoutRatio FLOAT",
-		"DividendDate DATE",
-		"ExDividendDate DATE",
-		"LastSplitFactor VARCHAR(32)",
-		"LastSplitDate DATE",
-		"FOREIGN KEY (ID) REFERENCES Ticker(id)",
-		"PRIMARY KEY (ID)",
-	}
 )
 
 type CompanyOverview struct {
@@ -245,11 +118,11 @@ func (co *CompanyOverview) UnmarshalJSON(b []byte) error {
 }
 
 type CompanyOverviewService interface {
-	GetTableName() string
-	GetTableColumns() []string
+	GetCreateTableInput() *dynamodb.CreateTableInput
+	GetPutItemInput() *dynamodb.PutItemInput
+
 	Get(symbol string) (CompanyOverview, error)
-	Insert(co CompanyOverview, db database.SQLClient) error
-	Sync(symbol string, db database.SQLClient) error
+	Sync(symbol string, db db.Client) error
 }
 
 type companyOverviewServiceOptions struct {
@@ -274,12 +147,29 @@ func newCompanyOverviewService(base baseClient) CompanyOverviewService {
 	}
 }
 
-func (s companyOverviewServicer) GetTableName() string {
-	return COMPANY_OVERVIEW_TABLE_NAME
+func (s companyOverviewServicer) GetCreateTableInput() *dynamodb.CreateTableInput {
+	return &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("Symbol"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("Symbol"),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		BillingMode: aws.String(db.DefaultBillingMode),
+		TableName:   aws.String(COMPANY_OVERVIEW_TABLE_NAME),
+	}
 }
 
-func (s companyOverviewServicer) GetTableColumns() []string {
-	return COMPANY_OVERVIEW_COLUMNS
+func (s companyOverviewServicer) GetPutItemInput() *dynamodb.PutItemInput {
+	return &dynamodb.PutItemInput{
+		TableName: aws.String(COMPANY_OVERVIEW_TABLE_NAME),
+	}
 }
 
 func (s companyOverviewServicer) Get(symbol string) (CompanyOverview, error) {
@@ -302,26 +192,7 @@ func (s companyOverviewServicer) Get(symbol string) (CompanyOverview, error) {
 	return co, nil
 }
 
-func (s companyOverviewServicer) Insert(co CompanyOverview, db database.SQLClient) error {
-	tickerID, err := db.GetTickerID(co.Symbol)
-	if err != nil {
-		return err
-	}
-
-	values := make([]interface{}, len(COMPANY_OVERVIEW_HEADERS))
-	ref := reflect.ValueOf(co)
-	values[0] = tickerID
-	for i := 1; i < len(COMPANY_OVERVIEW_HEADERS); i++ {
-		s := COMPANY_OVERVIEW_HEADERS[i]
-		values[i] = ref.FieldByName(s).Interface()
-		if values[i] == "" {
-			values[i] = nil
-		}
-	}
-	return db.Insert(s.GetTableName(), COMPANY_OVERVIEW_HEADERS, values)
-}
-
-func (s companyOverviewServicer) Sync(symbol string, db database.SQLClient) error {
+func (s companyOverviewServicer) Sync(symbol string, db db.Client) error {
 	// TODO
 	return nil
 }
