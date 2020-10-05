@@ -5,9 +5,8 @@ import (
 	"log"
 
 	"github.com/joho/godotenv"
-	"github.com/mcclurejt/mrkt-backend/api"
+	"github.com/mcclurejt/mrkt-backend/api/alphavantage"
 	"github.com/mcclurejt/mrkt-backend/config"
-	"github.com/mcclurejt/mrkt-backend/database/dynamodb"
 )
 
 //env
@@ -23,25 +22,27 @@ func main() {
 	// db := database.NewMySqlClient(conf.Db.Datasource)
 
 	// msClient := api.NewMarketStackClient(conf.Api.MarketStackAPIKey)
-	avClient := api.NewAlphaVantageClient(conf.Api.AlphavantageAPIKey)
+	avClient := alphavantage.NewAlphaVantageClient(conf.Api.AlphavantageAPIKey)
 	// gnClient := api.NewGlassNodeClient(conf.Api.GlassNodeAPIKey)
-	ddbClient := dynamodb.New()
+	// ddbClient := dynamodb.New()
 
-	err := ddbClient.CreateTable(avClient.CompanyOverviewService)
+	// err := ddbClient.CreateTable(avClient.DailyAdjustedTimeSeriesService)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	series, err := avClient.DailyAdjustedTimeSeries.Get("BABA", alphavantage.OutputSizeDefault)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	overview, err := avClient.CompanyOverviewService.Get("BABA")
-	if err != nil {
-		fmt.Println(err.Error())
+	for _, entry := range series.TimeSeries {
+		fmt.Printf("%v\n", entry)
 	}
 
-	fmt.Printf("%v\n", overview)
-
-	err = ddbClient.PutItem(avClient.CompanyOverviewService, overview)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	// err = ddbClient.PutAllItems(avClient.DailyAdjustedTimeSeriesService, series.TimeSeries)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
 
 }
