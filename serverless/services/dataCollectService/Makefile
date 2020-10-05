@@ -1,8 +1,8 @@
 .PHONY: build clean deploy
 
 build:
-	env GOOS=linux go build -ldflags="-s -w" -o bin/initialize_cron initialize_cron/main.go
-	env GOOS=linux go build -ldflags="-s -w" -o bin/fetch_client_data fetch_client_data/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/fetch_external fetch_external/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/post_ddb post_ddb/main.go
 
 clean:
 	rm -rf ./bin
