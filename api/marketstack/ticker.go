@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	db "github.com/mcclurejt/mrkt-backend/database/dynamodb"
+	db "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 )
 
 const (

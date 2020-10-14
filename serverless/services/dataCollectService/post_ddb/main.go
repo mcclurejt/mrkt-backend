@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/mcclurejt/mrkt-backend/api"
-	"github.com/mcclurejt/mrkt-backend/database/dynamodb"
+	av "github.com/mcclurejt/mrkt-backend/api/alphavantage"
+	"github.com/mcclurejt/mrkt-backend/api/dynamodb"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -22,16 +22,16 @@ type Input struct {
 	Body string `json:"body"`
 }
 
-var avClient api.AlphaVantageClient
+var avClient av.AlphaVantageClient
 var ddbClient *dynamodb.Client
 
 func init() {
-	avClient = api.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
+	avClient = av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 	ddbClient = dynamodb.New()
 }
 
 func Handler(ctx context.Context, input Input) (Response, error) {
-	var ts = api.MonthlyAdjustedTimeSeries{}
+	var ts = av.MonthlyAdjustedTimeSeries{}
 	err := json.Unmarshal([]byte(input.Body), &ts)
 	if err != nil {
 		return Response{StatusCode: 404}, err
@@ -39,7 +39,7 @@ func Handler(ctx context.Context, input Input) (Response, error) {
 
 	entries := ts.TimeSeries
 	for _, v := range entries {
-		err = ddbClient.PutItem(avClient.MonthlyAdjustedTimeSeriesService, v)
+		err = ddbClient.PutItem(avClient.MonthlyAdjustedTimeSeries, v)
 		if err != nil {
 			return Response{StatusCode: 404}, err
 		}

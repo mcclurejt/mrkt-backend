@@ -8,7 +8,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/mcclurejt/mrkt-backend/api"
+	av "github.com/mcclurejt/mrkt-backend/api/alphavantage"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -17,17 +17,17 @@ import (
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
 type Response events.APIGatewayProxyResponse
 
-var avClient api.AlphaVantageClient
+var avClient av.AlphaVantageClient
 
 func init() {
-	avClient = api.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
+	avClient = av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 }
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(ctx context.Context) (Response, error) {
 	var buf bytes.Buffer
 
-	ts, err := avClient.MonthlyAdjustedTimeSeriesService.Get("BRK-A")
+	ts, err := avClient.MonthlyAdjustedTimeSeries.Get(&av.MonthlyAdjustedTimeSeriesOptions{Symbol: "BRK-A"})
 	if err != nil {
 		return Response{StatusCode: 500}, err
 	}
