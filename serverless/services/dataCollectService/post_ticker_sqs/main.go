@@ -9,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/mcclurejt/mrkt-backend/api"
+	ms "github.com/mcclurejt/mrkt-backend/api/marketstack"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -18,10 +18,10 @@ import (
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
 type Response events.APIGatewayProxyResponse
 
-var msClient api.MarketStackClient
+var msClient ms.MarketStackClient
 
 func init() {
-	msClient = api.NewMarketStackClient("02378e09665e4a13b514d5cb29855994")
+	msClient = ms.NewMarketStackClient("02378e09665e4a13b514d5cb29855994")
 }
 
 func GetQueueUrl(sess *session.Session, queue *string) (*sqs.GetQueueUrlOutput, error) {
