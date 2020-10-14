@@ -119,11 +119,11 @@ func (co *CompanyOverview) UnmarshalJSON(b []byte) error {
 }
 
 type CompanyOverviewService interface {
-	GetCreateTableInput() *dynamodb.CreateTableInput
-	GetPutItemInput() *dynamodb.PutItemInput
-
 	Get(*CompanyOverviewOptions) (*CompanyOverview, error)
 	Sync(symbol string, db db.Client) error
+
+	GetCreateTableInput() *dynamodb.CreateTableInput
+	GetPutItemInput() *dynamodb.PutItemInput
 }
 
 type CompanyOverviewOptions struct {

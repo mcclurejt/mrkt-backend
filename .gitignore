@@ -14,7 +14,10 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-get_data
+mrkt
 
 .env
 .vscode
+
+cpu.prof
+mem.prof

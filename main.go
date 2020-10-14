@@ -1,12 +1,17 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"os"
+	"runtime"
+	"runtime/pprof"
 
 	"github.com/joho/godotenv"
-	"github.com/mcclurejt/mrkt-backend/api/alphavantage"
-	"github.com/mcclurejt/mrkt-backend/config"
+	av "github.com/mcclurejt/mrkt-backend/api/alphavantage"
+	gn "github.com/mcclurejt/mrkt-backend/api/glassnode"
+	ms "github.com/mcclurejt/mrkt-backend/api/marketstack"
 )
 
 //env
@@ -16,33 +21,58 @@ func init() {
 	}
 }
 
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var memprofile = flag.String("memprofile", "", "write memory profile to `file`")
+
 func main() {
-	conf := config.New() //env
+	// enable cpu profiling
+	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
-	// db := database.NewMySqlClient(conf.Db.Datasource)
+	// conf := config.New() //env
 
-	// msClient := api.NewMarketStackClient(conf.Api.MarketStackAPIKey)
-	avClient := alphavantage.NewAlphaVantageClient(conf.Api.AlphavantageAPIKey)
-	// gnClient := api.NewGlassNodeClient(conf.Api.GlassNodeAPIKey)
-	// ddbClient := dynamodb.New()
-
-	// err := ddbClient.CreateTable(avClient.DailyAdjustedTimeSeriesService)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
-
-	series, err := avClient.DailyAdjustedTimeSeries.Get("BABA", alphavantage.OutputSizeDefault)
+	msClient := ms.NewMarketStackClient("29250803996c88be8fe2e1ef46dce84e")
+	var tickers []*ms.TickerEntry
+	msOptions := ms.DefaultTickerOptions()
+	msOptions.Limit = 1200
+	err := msClient.BatchCall(ms.TickerRouteName, &tickers, msOptions)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	for _, entry := range series.TimeSeries {
-		fmt.Printf("%v\n", entry)
+	gnClient := gn.NewGlassNodeClient("105d32cc-afc0-4358-b335-891a35e80736")
+	var nupls []*gn.NetUnrealizedProfitLossEntry
+	gnOptions := gn.DefaultNetUnrealizedProfitLossOptions()
+	err = gnClient.BatchCall(gn.NuplRouteName, []string{"BTC", "ETH"}, nupls, gnOptions)
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
-	// err = ddbClient.PutAllItems(avClient.DailyAdjustedTimeSeriesService, series.TimeSeries)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
+	avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
+	var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry
+	dailyTimeSeriesOptions := &av.DailyAdjustedTimeSeriesOptions{OutputSize: av.OutputSizeDefault}
+	err = avClient.BatchCall(av.DailyTimeSeriesRouteName, []string{"BABA", "BRK-A", "BRK-B", "AAPL"}, &dailyTimeSeries, dailyTimeSeriesOptions)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
+	// save memory profiling for last
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close() // error handling omitted for example
+		runtime.GC()    // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
 }

@@ -4,20 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/mcclurejt/mrkt-backend/api/common"
 	db "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 	"github.com/mcclurejt/mrkt-backend/database"
 )
 
+type OutputSize string
+
 const (
-	DAILY_ADJUSTED_TIME_SERIES_FUNCTION   = "TIME_SERIES_DAILY_ADJUSTED"
-	DAILY_ADJUSTED_TIME_SERIES_TABLE_NAME = "DailyAdjustedTimeSeries"
-	OutputSizeCompact                     = "compact"
-	OutputSizeFull                        = "full"
-	OutputSizeDefault                     = OutputSizeCompact
+	DailyAdjustedTimeSeriesFunction             = "TIME_SERIES_DAILY_ADJUSTED"
+	DailyAdjustedTimeSeriesTableName            = "DailyAdjustedTimeSeries"
+	OutputSizeCompact                OutputSize = "compact"
+	OutputSizeFull                   OutputSize = "full"
+	OutputSizeDefault                OutputSize = OutputSizeCompact
 )
 
 type DailyAdjustedTimeSeries struct {
@@ -52,24 +56,24 @@ type DailyAdjustedTimeSeriesEntry struct {
 }
 
 type DailyAdjustedTimeSeriesService interface {
+	Get(options *DailyAdjustedTimeSeriesOptions) (*DailyAdjustedTimeSeries, error)
+	GetBatch(options *DailyAdjustedTimeSeriesOptions, ch chan<- common.ResultError)
+	Sync(options *DailyAdjustedTimeSeriesOptions, db database.SQLClient) error
+
 	GetCreateTableInput() *dynamodb.CreateTableInput
 	GetPutItemInput() *dynamodb.PutItemInput
-
-	Get(symbol string, outputSize string) (*DailyAdjustedTimeSeries, error)
-	Sync(symbol string, db database.SQLClient) error
 }
 
-type dailyAdjustedTimeSeriesServiceOptions struct {
+type DailyAdjustedTimeSeriesOptions struct {
 	Symbol     string
-	OutputSize string
+	OutputSize OutputSize
+	sync.RWMutex
 }
 
-func newDailyAdjustedTimeSeriesServiceOptions(symbol string, outputSize string) dailyAdjustedTimeSeriesServiceOptions {
-	return dailyAdjustedTimeSeriesServiceOptions{Symbol: symbol, OutputSize: outputSize}
-}
-
-func (o dailyAdjustedTimeSeriesServiceOptions) ToQueryString() string {
-	return fmt.Sprintf("&function=%s&symbol=%s&outputsize=%s", DAILY_ADJUSTED_TIME_SERIES_FUNCTION, o.Symbol, o.OutputSize)
+func (o *DailyAdjustedTimeSeriesOptions) ToQueryString() string {
+	o.Lock()
+	defer o.Unlock()
+	return fmt.Sprintf("&function=%s&symbol=%s&outputsize=%s", DailyAdjustedTimeSeriesFunction, o.Symbol, o.OutputSize)
 }
 
 type dailyAdjustedTimeSeriesServicer struct {
@@ -105,18 +109,17 @@ func (s dailyAdjustedTimeSeriesServicer) GetCreateTableInput() *dynamodb.CreateT
 			},
 		},
 		BillingMode: aws.String(db.DefaultBillingMode),
-		TableName:   aws.String(DAILY_ADJUSTED_TIME_SERIES_TABLE_NAME),
+		TableName:   aws.String(DailyAdjustedTimeSeriesTableName),
 	}
 }
 
 func (s dailyAdjustedTimeSeriesServicer) GetPutItemInput() *dynamodb.PutItemInput {
 	return &dynamodb.PutItemInput{
-		TableName: aws.String(DAILY_ADJUSTED_TIME_SERIES_TABLE_NAME),
+		TableName: aws.String(DailyAdjustedTimeSeriesTableName),
 	}
 }
 
-func (s dailyAdjustedTimeSeriesServicer) Get(symbol string, outputSize string) (*DailyAdjustedTimeSeries, error) {
-	options := newDailyAdjustedTimeSeriesServiceOptions(symbol, outputSize)
+func (s dailyAdjustedTimeSeriesServicer) Get(options *DailyAdjustedTimeSeriesOptions) (*DailyAdjustedTimeSeries, error) {
 	resp, err := s.base.call(options)
 	if err != nil {
 		return nil, err
@@ -127,7 +130,7 @@ func (s dailyAdjustedTimeSeriesServicer) Get(symbol string, outputSize string) (
 		_, ok := err.(*AlphaVantageRateExceededError)
 		if ok {
 			time.Sleep(defaultRetryPeriod * time.Second)
-			return s.Get(symbol, outputSize)
+			return s.Get(options)
 		}
 		return nil, err
 	}
@@ -135,7 +138,16 @@ func (s dailyAdjustedTimeSeriesServicer) Get(symbol string, outputSize string) (
 	return ts, nil
 }
 
-func (s dailyAdjustedTimeSeriesServicer) Sync(symbol string, db database.SQLClient) error {
+func (s dailyAdjustedTimeSeriesServicer) GetBatch(options *DailyAdjustedTimeSeriesOptions, ch chan<- common.ResultError) {
+	ts, err := s.Get(options)
+	if err != nil {
+		ch <- common.ResultError{Error: err}
+	} else {
+		ch <- common.ResultError{Result: ts}
+	}
+}
+
+func (s dailyAdjustedTimeSeriesServicer) Sync(options *DailyAdjustedTimeSeriesOptions, db database.SQLClient) error {
 	// TODO
 	return nil
 }
@@ -148,7 +160,6 @@ func parseDailyAdjustedTimeSeries(resp *http.Response) (*DailyAdjustedTimeSeries
 	}
 
 	timeSeries := target.DailyAdjustedTimeSeries
-
 	// check to see if the rate was exceeded and no objects were returned (still gives 200 status code)
 	if len(timeSeries) < 1 {
 		return nil, &AlphaVantageRateExceededError{}
