@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -23,11 +22,16 @@ func init() {
 	avClient = av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 }
 
-// Handler is our lambda handler invoked by the `lambda.Start` function call
-func Handler(ctx context.Context) (Response, error) {
-	var buf bytes.Buffer
+type Input struct {
+	Ticker string
+}
 
-	ts, err := avClient.MonthlyAdjustedTimeSeries.Get(&av.MonthlyAdjustedTimeSeriesOptions{Symbol: "BRK-A"})
+// Handler is our lambda handler invoked by the `lambda.Start` function call
+func Handler(ctx context.Context, input Input) (Response, error) {
+	var buf bytes.Buffer
+	ticker := input.Ticker
+
+	ts, err := avClient.MonthlyAdjustedTimeSeries.Get(&av.MonthlyAdjustedTimeSeriesOptions{Symbol: ticker})
 	if err != nil {
 		return Response{StatusCode: 500}, err
 	}
@@ -46,7 +50,6 @@ func Handler(ctx context.Context) (Response, error) {
 		},
 		Body: string(body),
 	}
-	fmt.Println(resp)
 	return resp, nil
 }
 
