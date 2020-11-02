@@ -1,17 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 
 	"github.com/joho/godotenv"
-	av "github.com/mcclurejt/mrkt-backend/api/alphavantage"
-	gn "github.com/mcclurejt/mrkt-backend/api/glassnode"
-	ms "github.com/mcclurejt/mrkt-backend/api/marketstack"
+	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
 )
 
 //env
@@ -38,30 +38,50 @@ func main() {
 
 	// conf := config.New() //env
 
-	msClient := ms.NewMarketStackClient("29250803996c88be8fe2e1ef46dce84e")
-	var tickers []*ms.TickerEntry
-	msOptions := ms.DefaultTickerOptions()
-	msOptions.Limit = 1200
-	err := msClient.BatchCall(ms.TickerRouteName, &tickers, msOptions)
+	// msClient := ms.NewMarketStackClient("29250803996c88be8fe2e1ef46dce84e")
+	// var tickers []*ms.TickerEntry
+	// msOptions := ms.DefaultTickerOptions()
+	// msOptions.Limit = 1200
+	// err := msClient.BatchCall(ms.TickerRouteName, &tickers, msOptions)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	// gnClient := gn.NewGlassNodeClient("105d32cc-afc0-4358-b335-891a35e80736")
+	// var nupls []*gn.NetUnrealizedProfitLossEntry
+	// gnOptions := gn.DefaultNetUnrealizedProfitLossOptions()
+	// err := gnClient.BatchCall(gn.NuplRouteName, []string{"BTC", "ETH"}, nupls, gnOptions)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
+	_, err := iexClient.Status.Get(context.Background())
+	symbs := []string{"twtr", "amzn"}
+	fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
+	// books, err := iexClient.Book.GetBatch(context.Background(), symbs)
+	// _, err = iexClient.DelayedQuote.Get(context.Background(), "twtr")
+	// _, err = iexClient.IntradayPrices.Get(context.Background(), "twtr")
+	types := []string{"company", "insider-summary", "insider-transactions", "insider-roster"}
+	lt, err := iexClient.Batch.GetSymbolBatch(context.Background(), "amzn", types)
+	fmt.Println(lt)
+	sp, err := iexClient.SectorPerformance.Get(context.Background())
+	fmt.Println(sp)
+	options := &iex.IntradayOptions{
+		ChangeFromClose: true,
+	}
+	_, err = iexClient.IntradayPrices.GetWithOptions(context.Background(), "twtr", options)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	gnClient := gn.NewGlassNodeClient("105d32cc-afc0-4358-b335-891a35e80736")
-	var nupls []*gn.NetUnrealizedProfitLossEntry
-	gnOptions := gn.DefaultNetUnrealizedProfitLossOptions()
-	err = gnClient.BatchCall(gn.NuplRouteName, []string{"BTC", "ETH"}, nupls, gnOptions)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
-	var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry
-	dailyTimeSeriesOptions := &av.DailyAdjustedTimeSeriesOptions{OutputSize: av.OutputSizeDefault}
-	err = avClient.BatchCall(av.DailyTimeSeriesRouteName, []string{"BABA", "BRK-A", "BRK-B", "AAPL"}, &dailyTimeSeries, dailyTimeSeriesOptions)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	// avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
+	// var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry
+	// dailyTimeSeriesOptions := &av.DailyAdjustedTimeSeriesOptions{OutputSize: av.OutputSizeDefault}
+	// err = avClient.BatchCall(av.DailyTimeSeriesRouteName, []string{"BABA", "BRK-A", "BRK-B", "AAPL"}, &dailyTimeSeries, dailyTimeSeriesOptions)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
 
 	// save memory profiling for last
 	if *memprofile != "" {
