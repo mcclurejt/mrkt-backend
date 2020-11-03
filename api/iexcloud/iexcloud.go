@@ -42,6 +42,7 @@ type IexCloudClient struct {
 	Peers               PeersService
 	Batch               BatchService
 	SectorPerformance   SectorPerformanceService
+	Options             OptionsService
 }
 
 type IexCloudError struct {
@@ -76,6 +77,7 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	c.Peers = &PeersServiceOp{client: c}
 	c.Batch = &BatchServiceOp{client: c}
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
+	c.Options = &OptionsServiceOp{client: c}
 
 	return c
 }
