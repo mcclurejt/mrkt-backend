@@ -12,6 +12,7 @@ import (
 )
 
 const DefaultBillingMode = db.BillingModePayPerRequest
+const MaxBatchSize = 25
 
 var ValidAttributeTypeMap = map[string]bool{
 	"S": true,
@@ -117,4 +118,45 @@ func PutItemInputFromStruct(item interface{}) (*dynamodb.PutItemInput, error) {
 		TableName: aws.String(t.Name()),
 	}
 	return input, nil
+}
+
+// PutRequestsFromSlice - Converts a slice of structs to an array of PutRequests
+func PutRequestsFromSlice(arr interface{}) ([]*db.PutRequest, error) {
+	v := reflect.ValueOf(arr)
+	if v.Kind() != reflect.Slice {
+		return nil, errors.New("Error: Input argument must be a slice")
+	}
+	requests := []*db.PutRequest{}
+	for i := 0; i < v.Len(); i++ {
+		item := v.Index(i)
+		av, err := dynamodbattribute.MarshalMap(item.Interface())
+		if err != nil {
+			return nil, err
+		}
+		requests = append(requests, &db.PutRequest{Item: av})
+	}
+	return requests, nil
+}
+
+// ConvertToBatchPutRequest - Consolidates the input slice of PutRequests to a BatchWriteRequest
+func ConvertToBatchPutRequest(requests []*db.PutRequest, tableName string) []*db.BatchWriteItemInput {
+	inputs := []*db.BatchWriteItemInput{}
+	l := len(requests)
+	var batch []*db.PutRequest
+	for i := 0; i < l; i += MaxBatchSize {
+		if i+MaxBatchSize > l {
+			batch = requests[i:l]
+		} else {
+			batch = requests[i : i+MaxBatchSize]
+		}
+		requestItems := map[string][]*db.WriteRequest{}
+		requestItems[tableName] = []*db.WriteRequest{}
+		for _, item := range batch {
+			requestItems[tableName] = append(requestItems[tableName], &db.WriteRequest{PutRequest: item})
+		}
+		inputs = append(inputs, &db.BatchWriteItemInput{
+			RequestItems: requestItems,
+		})
+	}
+	return inputs
 }

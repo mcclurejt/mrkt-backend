@@ -10,7 +10,6 @@ import (
 	"runtime/pprof"
 
 	"github.com/joho/godotenv"
-	util "github.com/mcclurejt/mrkt-backend/api/dynamodbutil"
 	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
 	"github.com/mcclurejt/mrkt-backend/config"
 )
@@ -49,18 +48,27 @@ func main() {
 
 	iexClient := iex.NewIEXCloudClient(conf.Api.IEXCloudAPIKey)
 	symbols, _ := iexClient.IexSymbols.Get(context.Background())
-	symbol := symbols[0]
 
-	ohlcv, _ := iexClient.Chart.GetSingleDay(context.Background(), symbol.Symbol, "20201103")
-	item := ohlcv[0]
-
-	createTableInput, err := util.CreateTableInputFromStruct(iex.OHLCV{})
-	if err != nil {
-		fmt.Println(err.Error())
+	symbolTexts := []string{}
+	for _, v := range symbols {
+		symbolTexts = append(symbolTexts, v.Symbol)
 	}
-	putItemInput, _ := util.PutItemInputFromStruct(item)
-	fmt.Println(createTableInput)
-	fmt.Println(putItemInput)
+	ohlcv1, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:1000], "20201028")
+	ohlcv2, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:1000], "20201028")
+
+	symbolMap := map[string]iex.OHLCV{}
+	for _, v := range ohlcv1 {
+		symbolMap[v.Symbol] = v
+	}
+
+	for _, v := range ohlcv2 {
+		if _, ok := symbolMap[v.Symbol]; !ok {
+			fmt.Println(v.Symbol)
+			ohlcv, _ := iexClient.Chart.GetSingleDay(context.Background(), v.Symbol, "20201028")
+			fmt.Printf("%s : %v\n", v.Symbol, ohlcv)
+		}
+	}
+
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
 	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)

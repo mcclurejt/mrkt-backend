@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-querystring/query"
+	"golang.org/x/time/rate"
 )
 
 type IEXCloudRouteName string
@@ -24,9 +25,10 @@ const (
 var ErrorEmptyResponse = errors.New("Response Body Was Empty")
 
 type baseClient struct {
-	httpClient *http.Client
-	url        string
-	apiKey     string
+	httpClient  *http.Client
+	url         string
+	apiKey      string
+	rateLimiter *rate.Limiter
 }
 
 type IEXCloudClient struct {
@@ -93,8 +95,9 @@ func newIEXCloudBaseClient(apiKey string) *baseClient {
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout * time.Second,
 		},
-		apiKey: apiKey,
-		url:    IEXCloudBaseURL,
+		apiKey:      apiKey,
+		url:         IEXCloudBaseURL,
+		rateLimiter: rate.NewLimiter(10, 1),
 	}
 }
 
@@ -106,10 +109,6 @@ func (c *IEXCloudClient) GetJSON(ctx context.Context, endpoint string, v interfa
 	data, err := c.getBytes(ctx, addr)
 	if err != nil {
 		return err
-	}
-	// check if response body is empty
-	if len(data) <= 2 {
-		return ErrorEmptyResponse
 	}
 	return json.Unmarshal(data, v)
 }
@@ -138,6 +137,10 @@ func (c *IEXCloudClient) getBytes(ctx context.Context, addr string) ([]byte, err
 	req, err := http.NewRequest("GET", addr, nil)
 	if err != nil {
 		return []byte{}, err
+	}
+	err = c.base.rateLimiter.Wait(ctx)
+	if err != nil {
+		return nil, err
 	}
 	resp, err := c.base.httpClient.Do(req.WithContext(ctx))
 	if err != nil {

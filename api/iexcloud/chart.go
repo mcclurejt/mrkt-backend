@@ -8,6 +8,7 @@ import (
 const (
 	chartEndpointURL      = "/stock/%s/chart/%s/%s"
 	chartBatchEndpointURL = "/stock/market/batch"
+	MaxBatchSize          = 100
 )
 
 type ChartRange string
@@ -108,27 +109,65 @@ func (c *ChartServiceOp) GetSingleDay(ctx context.Context, symbol string, date s
 }
 
 func (c *ChartServiceOp) GetBatch(ctx context.Context, symbols []string, options *ChartOptions) ([]OHLCV, error) {
-	batch := map[string]map[string][]OHLCV{}
-	endpoint := chartBatchEndpointURL
-	batchOptions := &BatchOptions{Symbols: SliceToString(symbols, nil), Types: "chart"}
-	endpoint, err := c.client.addOptions(endpoint, batchOptions)
-	if err != nil {
-		return []OHLCV{}, err
-	}
-	endpoint, err = c.client.addOptions(endpoint, options)
-	if err != nil {
-		return []OHLCV{}, err
-	}
-	err = c.client.GetJSON(ctx, endpoint, &batch)
 	ohlcvs := []OHLCV{}
-	for symbol, v := range batch {
-		ohlcvList := v["chart"]
-		for _, ohlcv := range ohlcvList {
-			ohlcv.Symbol = symbol
-			ohlcvs = append(ohlcvs, ohlcv)
+	symbolBatchesCh := make(chan []string)
+	results := make(chan []OHLCV)
+	errors := make(chan error)
+	symbolBatches := [][]string{}
+	// create the batches of symbols to be worked on
+	for i := 0; i < len(symbols); i += MaxBatchSize {
+		if i+MaxBatchSize > len(symbols) {
+			symbolBatches = append(symbolBatches, symbols[i:len(symbols)])
+		} else {
+			symbolBatches = append(symbolBatches, symbols[i:(i+MaxBatchSize)])
 		}
 	}
+	// spawn the worker goroutines
+	for i := 0; i < 20; i++ {
+		go c.batchWorker(ctx, symbolBatchesCh, options, results, errors)
+	}
+	// give them batches
+	for i := range symbolBatches {
+		symbolBatchesCh <- symbolBatches[i]
+	}
+	close(symbolBatchesCh)
+	// get the results
+	for i := 0; i < len(symbolBatches); i++ {
+		select {
+		case err := <-errors:
+			return []OHLCV{}, err
+		case arr := <-results:
+			ohlcvs = append(ohlcvs, arr...)
+		}
+	}
+
 	return ohlcvs, nil
+}
+
+func (c *ChartServiceOp) batchWorker(ctx context.Context, symbolBatches chan []string, options *ChartOptions, results chan []OHLCV, errors chan error) {
+	for s := range symbolBatches {
+		batch := map[string]map[string][]OHLCV{}
+		endpoint := chartBatchEndpointURL
+		batchOptions := &BatchOptions{Symbols: SliceToString(s, nil), Types: "chart"}
+		endpoint, err := c.client.addOptions(endpoint, batchOptions)
+		if err != nil {
+			errors <- err
+		}
+		endpoint, err = c.client.addOptions(endpoint, options)
+		if err != nil {
+			errors <- err
+		}
+		err = c.client.GetJSON(ctx, endpoint, &batch)
+		ohlcvs := []OHLCV{}
+		for symbol, v := range batch {
+			ohlcvList := v["chart"]
+			for _, ohlcv := range ohlcvList {
+				ohlcv.Symbol = symbol
+				ohlcvs = append(ohlcvs, ohlcv)
+			}
+		}
+		results <- ohlcvs
+	}
 }
 
 func (c *ChartServiceOp) GetBatchSingleDay(ctx context.Context, symbols []string, date string) ([]OHLCV, error) {

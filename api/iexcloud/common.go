@@ -1,6 +1,7 @@
 package iexcloud
 
 import (
+	"net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -106,7 +107,7 @@ func SliceToString(arr interface{}, sep *string) string {
 		entry := v.Index(i)
 		stringArr[i] = entry.String()
 	}
-	return strings.Join(stringArr, *sep)
+	return url.PathEscape(strings.Join(stringArr, *sep))
 }
 
 // EnumToString - Takes a custom-typed object and converts it to a string

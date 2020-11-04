@@ -18,17 +18,17 @@ service: iexcloud
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
-frameworkVersion: '2'
+frameworkVersion: "2"
 
 provider:
   name: aws
   runtime: go1.x
 
-# you can overwrite defaults here
+  # you can overwrite defaults here
   stage: dev
   region: us-west-2
 
-# you can add statements to the Lambda function's IAM Role here
+  # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -45,10 +45,11 @@ functions:
   iex-symbols:
     handler: bin/iex-symbols
     events:
-      - schedule: 
+      - schedule:
           rate: cron(30 21 ? * FRI *)
           name: "weekly-symbols-update"
           description: "Fetch new list of symbols weekly on Friday at 4:30pm EST."
           enabled: true
   batch-single-day:
     handler: bin/batch-single-day
+    timeout: 25
