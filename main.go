@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -53,8 +54,8 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	// iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
-	// _, err := iexClient.Status.Get(context.Background())
+	iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
+	iexSymbs, err := iexClient.IexSymbols.Get(context.Background())
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
 	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)
@@ -62,19 +63,19 @@ func main() {
 	// // _, err = iexClient.IntradayPrices.Get(context.Background(), "twtr")
 	// types := []string{"company", "insider-summary", "insider-transactions", "insider-roster"}
 	// lt, err := iexClient.Batch.GetSymbolBatch(context.Background(), "amzn", types)
-	// fmt.Println(lt)
+	fmt.Println(iexSymbs)
 	// sp, err := iexClient.SectorPerformance.Get(context.Background())
 	// fmt.Println(sp)
 	// options := &iex.IntradayOptions{
 	// 	ChangeFromClose: true,
 	// }
 	// _, err = iexClient.IntradayPrices.GetWithOptions(context.Background(), "twtr", options)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
-	arr := []iex.QueryType{iex.QueryTypeBook, iex.QueryTypeDelayedQuote, iex.QueryTypeCompany}
-	fmt.Println(iex.SliceToString(arr, nil))
+	// arr := []iex.QueryType{iex.QueryTypeBook, iex.QueryTypeDelayedQuote, iex.QueryTypeCompany}
+	// fmt.Println(iex.SliceToString(arr, nil))
 
 	// avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 	// var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry

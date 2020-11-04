@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/google/go-querystring/query"
-	"github.com/mcclurejt/mrkt-backend/api/common"
 )
 
 type IexCloudRouteName string
 
 const (
+	DefaultTimeout  = 10
 	IexCloudBaseURL = "https://cloud.iexapis.com/v1"
 )
 
@@ -43,6 +43,7 @@ type IexCloudClient struct {
 	Batch               BatchService
 	SectorPerformance   SectorPerformanceService
 	Options             OptionsService
+	IexSymbols          IexSymbolsService
 }
 
 type IexCloudError struct {
@@ -73,6 +74,7 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	c.Batch = &BatchServiceOp{client: c}
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
 	c.Options = &OptionsServiceOp{client: c}
+	c.IexSymbols = &IexSymbolsServiceOp{client: c}
 
 	for _, option := range options {
 		option(c)
@@ -84,7 +86,7 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 func newIexCloudBaseClient(apiKey string) *baseClient {
 	return &baseClient{
 		httpClient: &http.Client{
-			Timeout: common.DefaultTimeout * time.Second,
+			Timeout: DefaultTimeout * time.Second,
 		},
 		apiKey: apiKey,
 		url:    IexCloudBaseURL,
