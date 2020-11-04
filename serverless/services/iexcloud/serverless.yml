@@ -50,3 +50,5 @@ functions:
           name: "weekly-symbols-update"
           description: "Fetch new list of symbols weekly on Friday at 4:30pm EST."
           enabled: true
+  batch-single-day:
+    handler: bin/batch-single-day
