@@ -5,7 +5,7 @@ import (
 )
 
 type StatusService interface {
-	Get(ctx context.Context) (*Status, error)
+	Get(ctx context.Context) (Status, error)
 }
 
 type StatusServiceOp struct {
@@ -21,9 +21,9 @@ type Status struct {
 	Time    int    `json:"time"`
 }
 
-func (s *StatusServiceOp) Get(ctx context.Context) (*Status, error) {
-	status := new(Status)
+func (s *StatusServiceOp) Get(ctx context.Context) (Status, error) {
+	status := Status{}
 	endpoint := "/status"
-	err := s.client.GetJSON(ctx, endpoint, status)
+	err := s.client.GetJSON(ctx, endpoint, &status)
 	return status, err
 }
