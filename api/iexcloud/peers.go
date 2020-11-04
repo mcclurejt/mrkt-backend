@@ -11,7 +11,7 @@ type PeersService interface {
 }
 
 type PeersServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ PeersService = &PeersServiceOp{}

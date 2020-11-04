@@ -13,11 +13,11 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-type IexCloudRouteName string
+type IEXCloudRouteName string
 
 const (
 	DefaultTimeout  = 10
-	IexCloudBaseURL = "https://cloud.iexapis.com/v1"
+	IEXCloudBaseURL = "https://cloud.iexapis.com/v1"
 )
 
 type baseClient struct {
@@ -26,7 +26,7 @@ type baseClient struct {
 	apiKey     string
 }
 
-type IexCloudClient struct {
+type IEXCloudClient struct {
 	base *baseClient
 
 	// services
@@ -43,21 +43,21 @@ type IexCloudClient struct {
 	Batch               BatchService
 	SectorPerformance   SectorPerformanceService
 	Options             OptionsService
-	IexSymbols          IexSymbolsService
+	IexSymbols          IEXSymbolsService
 }
 
-type IexCloudError struct {
+type IEXCloudError struct {
 	StatusCode int
 	Message    string
 }
 
-func (e IexCloudError) Error() string {
+func (e IEXCloudError) Error() string {
 	return fmt.Sprintf("%d %s: %s", e.StatusCode, http.StatusText(e.StatusCode), e.Message)
 }
 
-func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexCloudClient {
-	base := newIexCloudBaseClient(apiKey)
-	c := &IexCloudClient{
+func NewIEXCloudClient(apiKey string, options ...func(*IEXCloudClient)) *IEXCloudClient {
+	base := newIEXCloudBaseClient(apiKey)
+	c := &IEXCloudClient{
 		base: base,
 	}
 	// services
@@ -74,7 +74,7 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	c.Batch = &BatchServiceOp{client: c}
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
 	c.Options = &OptionsServiceOp{client: c}
-	c.IexSymbols = &IexSymbolsServiceOp{client: c}
+	c.IexSymbols = &IEXSymbolsServiceOp{client: c}
 
 	for _, option := range options {
 		option(c)
@@ -83,17 +83,17 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	return c
 }
 
-func newIexCloudBaseClient(apiKey string) *baseClient {
+func newIEXCloudBaseClient(apiKey string) *baseClient {
 	return &baseClient{
 		httpClient: &http.Client{
 			Timeout: DefaultTimeout * time.Second,
 		},
 		apiKey: apiKey,
-		url:    IexCloudBaseURL,
+		url:    IEXCloudBaseURL,
 	}
 }
 
-func (c *IexCloudClient) GetJSON(ctx context.Context, endpoint string, v interface{}) error {
+func (c *IEXCloudClient) GetJSON(ctx context.Context, endpoint string, v interface{}) error {
 	addr, err := c.addToken(endpoint)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (c *IexCloudClient) GetJSON(ctx context.Context, endpoint string, v interfa
 	return json.Unmarshal(data, v)
 }
 
-func (c *IexCloudClient) GetJSONWithoutToken(ctx context.Context, endpoint string, v interface{}) error {
+func (c *IEXCloudClient) GetJSONWithoutToken(ctx context.Context, endpoint string, v interface{}) error {
 	addr := c.base.url + endpoint
 	data, err := c.getBytes(ctx, addr)
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *IexCloudClient) GetJSONWithoutToken(ctx context.Context, endpoint strin
 	return json.Unmarshal(data, v)
 }
 
-func (c *IexCloudClient) addToken(endpoint string) (string, error) {
+func (c *IEXCloudClient) addToken(endpoint string) (string, error) {
 	u, err := url.Parse(c.base.url + endpoint)
 	if err != nil {
 		return "", err
@@ -126,7 +126,7 @@ func (c *IexCloudClient) addToken(endpoint string) (string, error) {
 	return u.String(), nil
 }
 
-func (c *IexCloudClient) getBytes(ctx context.Context, addr string) ([]byte, error) {
+func (c *IEXCloudClient) getBytes(ctx context.Context, addr string) ([]byte, error) {
 	req, err := http.NewRequest("GET", addr, nil)
 	if err != nil {
 		return []byte{}, err
@@ -143,12 +143,12 @@ func (c *IexCloudClient) getBytes(ctx context.Context, addr string) ([]byte, err
 		if err == nil {
 			msg = string(b)
 		}
-		return []byte{}, IexCloudError{StatusCode: resp.StatusCode, Message: msg}
+		return []byte{}, IEXCloudError{StatusCode: resp.StatusCode, Message: msg}
 	}
 	return ioutil.ReadAll(resp.Body)
 }
 
-func (c *IexCloudClient) addOptions(s string, opt interface{}) (string, error) {
+func (c *IEXCloudClient) addOptions(s string, opt interface{}) (string, error) {
 	v := reflect.ValueOf(opt)
 
 	if v.Kind() == reflect.Ptr && v.IsNil() {

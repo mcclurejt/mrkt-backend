@@ -47,7 +47,7 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	iexClient := iex.NewIexCloudClient(conf.Api.IEXCloudAPIKey)
+	iexClient := iex.NewIEXCloudClient(conf.Api.IEXCloudAPIKey)
 	symbols, _ := iexClient.IexSymbols.Get(context.Background())
 	s := symbols[0]
 

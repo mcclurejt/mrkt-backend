@@ -11,7 +11,7 @@ type InsiderTransactionsService interface {
 }
 
 type InsiderTransactionsServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ InsiderTransactionsService = &InsiderTransactionsServiceOp{}

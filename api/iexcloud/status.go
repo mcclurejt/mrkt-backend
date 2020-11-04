@@ -9,7 +9,7 @@ type StatusService interface {
 }
 
 type StatusServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ StatusService = &StatusServiceOp{}

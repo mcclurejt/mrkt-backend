@@ -11,7 +11,7 @@ type InsiderRosterService interface {
 }
 
 type InsiderRosterServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ InsiderRosterService = &InsiderRosterServiceOp{}

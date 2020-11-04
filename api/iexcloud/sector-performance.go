@@ -10,7 +10,7 @@ type SectorPerformanceService interface {
 }
 
 type SectorPerformanceServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ SectorPerformanceService = &SectorPerformanceServiceOp{}

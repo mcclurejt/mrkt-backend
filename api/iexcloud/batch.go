@@ -31,7 +31,7 @@ type BatchService interface {
 }
 
 type BatchServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ BatchService = &BatchServiceOp{}

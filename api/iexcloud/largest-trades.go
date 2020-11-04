@@ -11,7 +11,7 @@ type LargestTradesService interface {
 }
 
 type LargestTradesServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ LargestTradesService = &LargestTradesServiceOp{}

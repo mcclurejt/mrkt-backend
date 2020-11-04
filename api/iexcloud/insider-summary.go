@@ -11,7 +11,7 @@ type InsiderSummaryService interface {
 }
 
 type InsiderSummaryServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ InsiderSummaryService = &InsiderSummaryServiceOp{}

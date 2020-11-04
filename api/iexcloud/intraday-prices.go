@@ -12,7 +12,7 @@ type IntradayPricesService interface {
 }
 
 type IntradayPricesServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ IntradayPricesService = &IntradayPricesServiceOp{}

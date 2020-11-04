@@ -23,7 +23,7 @@ type OptionsService interface {
 }
 
 type OptionsServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ OptionsService = &OptionsServiceOp{}

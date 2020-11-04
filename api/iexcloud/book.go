@@ -11,7 +11,7 @@ type BookService interface {
 }
 
 type BookServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ BookService = &BookServiceOp{}

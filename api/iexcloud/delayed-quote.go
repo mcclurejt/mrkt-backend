@@ -11,7 +11,7 @@ type DelayedQuoteService interface {
 }
 
 type DelayedQuoteServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ DelayedQuoteService = &DelayedQuoteServiceOp{}

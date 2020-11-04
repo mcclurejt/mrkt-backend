@@ -11,7 +11,7 @@ type CompanyService interface {
 }
 
 type CompanyServiceOp struct {
-	client *IexCloudClient
+	client *IEXCloudClient
 }
 
 var _ CompanyService = &CompanyServiceOp{}
