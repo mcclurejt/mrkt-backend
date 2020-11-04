@@ -3,6 +3,7 @@ package iexcloud
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -27,8 +28,8 @@ const (
 )
 
 type BatchService interface {
-	GetMarketBatch(context.Context, []string, []string) (*map[string]Batch, error)
-	GetSymbolBatch(context.Context, string, []string) (*Batch, error)
+	GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (*map[string]Batch, error)
+	GetSymbolBatch(ctx context.Context, symbol string, types []QueryType) (*Batch, error)
 }
 
 type BatchServiceOp struct {
@@ -55,12 +56,12 @@ type SymbolBatchOptions struct {
 	Types string `url:"types,omitEmpty"`
 }
 
-func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, types []string) (*map[string]Batch, error) {
+func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (*map[string]Batch, error) {
 	batch := new(map[string]Batch)
 	endpoint := fmt.Sprintf("/stock/market/batch/")
 	options := &BatchOptions{
-		Symbols: toQueryString(symbols),
-		Types:   toQueryString(types),
+		Symbols: ToURLString(symbols),
+		Types:   ToURLString(types),
 	}
 	endpoint, err := s.client.addOptions(endpoint, options)
 	if err != nil {
@@ -70,11 +71,11 @@ func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, t
 	return batch, err
 }
 
-func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, types []string) (*Batch, error) {
+func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, types []QueryType) (*Batch, error) {
 	batch := new(Batch)
 	endpoint := fmt.Sprintf("/stock/%s/batch/", symbol)
 	options := &SymbolBatchOptions{
-		Types: toQueryString(types),
+		Types: ToURLString(types),
 	}
 	endpoint, err := s.client.addOptions(endpoint, options)
 	if err != nil {
@@ -84,6 +85,18 @@ func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, type
 	return batch, err
 }
 
-func toQueryString(arr []string) string {
-	return strings.Join(arr, ",")
+// ToURLString - takes a slice of string-like objects and converts them to a string containing the comma-separated items
+func ToURLString(arr interface{}) string {
+	t := reflect.TypeOf(arr)
+	if t.Kind() != reflect.Slice {
+		panic(arr)
+	}
+	v := reflect.ValueOf(arr)
+	l := v.Len()
+	stringArr := make([]string, l)
+	for i := 0; i < l; i++ {
+		entry := v.Index(i)
+		stringArr[i] = entry.String()
+	}
+	return strings.Join(stringArr, ",")
 }

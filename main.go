@@ -1,14 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"strings"
 
 	"github.com/joho/godotenv"
 	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
@@ -55,25 +53,28 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
-	_, err := iexClient.Status.Get(context.Background())
-	symbs := []string{"twtr", "amzn"}
-	fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
-	// books, err := iexClient.Book.GetBatch(context.Background(), symbs)
-	// _, err = iexClient.DelayedQuote.Get(context.Background(), "twtr")
-	// _, err = iexClient.IntradayPrices.Get(context.Background(), "twtr")
-	types := []string{"company", "insider-summary", "insider-transactions", "insider-roster"}
-	lt, err := iexClient.Batch.GetSymbolBatch(context.Background(), "amzn", types)
-	fmt.Println(lt)
-	sp, err := iexClient.SectorPerformance.Get(context.Background())
-	fmt.Println(sp)
-	options := &iex.IntradayOptions{
-		ChangeFromClose: true,
-	}
-	_, err = iexClient.IntradayPrices.GetWithOptions(context.Background(), "twtr", options)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	// iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
+	// _, err := iexClient.Status.Get(context.Background())
+	// symbs := []string{"twtr", "amzn"}
+	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
+	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)
+	// // _, err = iexClient.DelayedQuote.Get(context.Background(), "twtr")
+	// // _, err = iexClient.IntradayPrices.Get(context.Background(), "twtr")
+	// types := []string{"company", "insider-summary", "insider-transactions", "insider-roster"}
+	// lt, err := iexClient.Batch.GetSymbolBatch(context.Background(), "amzn", types)
+	// fmt.Println(lt)
+	// sp, err := iexClient.SectorPerformance.Get(context.Background())
+	// fmt.Println(sp)
+	// options := &iex.IntradayOptions{
+	// 	ChangeFromClose: true,
+	// }
+	// _, err = iexClient.IntradayPrices.GetWithOptions(context.Background(), "twtr", options)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	arr := []iex.QueryType{iex.BOOK, iex.DELAYED_QUOTE, iex.INTRADAY_PRICES}
+	fmt.Println(iex.ToQueryString(arr))
 
 	// avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 	// var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry
