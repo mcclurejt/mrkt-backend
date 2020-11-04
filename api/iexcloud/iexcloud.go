@@ -3,6 +3,7 @@ package iexcloud
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +20,8 @@ const (
 	DefaultTimeout  = 10
 	IEXCloudBaseURL = "https://cloud.iexapis.com/v1"
 )
+
+var ErrorEmptyResponse = errors.New("Response Body Was Empty")
 
 type baseClient struct {
 	httpClient *http.Client
@@ -44,6 +47,7 @@ type IEXCloudClient struct {
 	SectorPerformance   SectorPerformanceService
 	Options             OptionsService
 	IexSymbols          IEXSymbolsService
+	Chart               ChartService
 }
 
 type IEXCloudError struct {
@@ -75,6 +79,7 @@ func NewIEXCloudClient(apiKey string, options ...func(*IEXCloudClient)) *IEXClou
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
 	c.Options = &OptionsServiceOp{client: c}
 	c.IexSymbols = &IEXSymbolsServiceOp{client: c}
+	c.Chart = &ChartServiceOp{client: c}
 
 	for _, option := range options {
 		option(c)
@@ -98,10 +103,13 @@ func (c *IEXCloudClient) GetJSON(ctx context.Context, endpoint string, v interfa
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Address: %s\n", addr)
 	data, err := c.getBytes(ctx, addr)
 	if err != nil {
 		return err
+	}
+	// check if response body is empty
+	if len(data) <= 2 {
+		return ErrorEmptyResponse
 	}
 	return json.Unmarshal(data, v)
 }

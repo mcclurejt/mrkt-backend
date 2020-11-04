@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	db "github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	attribute "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
@@ -26,7 +27,9 @@ var ValidKeyTypeMap = map[string]bool{
 }
 
 var AttributeNameTags = []string{"attributename", "an"}
+
 var AttributeTypeTags = []string{"attributetype", "at"}
+
 var KeyTypeTags = []string{"keytype", "kt"}
 
 type DataProvider interface {
@@ -124,8 +127,8 @@ func (c *Client) PutAllItems(p DataProvider, items interface{}) error {
 }
 
 // CreateTableInputFromStruct - Generates CreateTableInput using the tags contained in the input struct s, if s is not a struct, an error is thrown
-// AttributeName: Accepts both `an` and `attributename` struct tags
-// AttributeType: Accepts both `at` and `attributetype` struct tags
+// AttributeName: Uses the field's name
+// AttributeType: Accepts both `at` and `attributetype` struct tags. If the field is missing both the `at` and `attributetype` tags, but contains either the `time` or `date` tags, the AttributeType can be inferred
 // KeyType: Accepts both `kt` and `keytype` struct tags
 func CreateTableInputFromStruct(s interface{}) (*dynamodb.CreateTableInput, error) {
 	v := reflect.ValueOf(s)
@@ -146,20 +149,9 @@ func CreateTableInputFromStruct(s interface{}) (*dynamodb.CreateTableInput, erro
 	for i := 0; i < v.NumField(); i++ {
 		f := t.Field(i)
 		// Attribute Name
-		tagFound := false
-		attributeName := ""
-		for _, tag := range AttributeNameTags {
-			val, ok := f.Tag.Lookup(tag)
-			if ok {
-				attributeName = val
-				tagFound = true
-			}
-		}
-		if !tagFound {
-			continue
-		}
+		attributeName := f.Name
 		// Attribute Type
-		tagFound = false
+		tagFound := false
 		attributeType := ""
 		for _, tag := range AttributeTypeTags {
 			val, ok := f.Tag.Lookup(tag)
@@ -199,6 +191,28 @@ func CreateTableInputFromStruct(s interface{}) (*dynamodb.CreateTableInput, erro
 			AttributeName: aws.String(attributeName),
 			KeyType:       aws.String(keyType),
 		})
+	}
+	return input, nil
+}
+
+// PutItemInputFromStruct - Generates PutItemInput from the given struct while also standardizing fields with the following tags
+// `time:""` - converts the given integer value to a string timestamp
+// `date:""` - converts dates of the form "yyyy-mm-dd" to a string timestamp
+func PutItemInputFromStruct(item interface{}) (*dynamodb.PutItemInput, error) {
+	// create the attributevalue
+	av, err := dynamodbattribute.MarshalMap(item)
+	if err != nil {
+		return nil, err
+	}
+	// check if it contains any inferred attribute type tags. If so, modify that field accordingly
+	v := reflect.ValueOf(item)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	t := v.Type()
+	input := &dynamodb.PutItemInput{
+		Item:      av,
+		TableName: aws.String(t.Name()),
 	}
 	return input, nil
 }

@@ -8,6 +8,8 @@ import (
 
 // common - Models shared across the iexcloud API
 
+const DefaultTimeStampFormat = time.RFC3339
+
 type BidAsk struct {
 	Price     float64 `json:"price"`
 	Size      int     `json:"size"`
@@ -118,5 +120,11 @@ func DateToTimestamp(d string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return t.Format(time.RFC3339), nil
+	return t.Format(DefaultTimeStampFormat), nil
+}
+
+// TimeToTimestamp - Takes a Unix time eg: "1257894000" and converts it to a timestamp
+func TimeToTimestamp(seconds int64) string {
+	t := time.Unix(seconds, 0)
+	return t.Format(DefaultTimeStampFormat)
 }

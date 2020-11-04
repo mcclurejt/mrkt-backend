@@ -16,14 +16,23 @@ type IEXSymbolsServiceOp struct {
 var _ IEXSymbolsService = &IEXSymbolsServiceOp{}
 
 type IEXSymbol struct {
-	Symbol    string `json:"symbol" an:"Symbol" at:"S" kt:"HASH"`
-	Date      string `json:"date" an:"Date" at:"S" kt:"RANGE"`
-	IsEnabled bool   `json:"isEnabled"`
+	Symbol    string `json:"symbol" at:"S" kt:"HASH"`
+	Date      string `at:"S" kt:"HASH"`
+	date      string `json:"date"`
+	isEnabled bool   `json:"isEnabled"`
 }
 
 func (s *IEXSymbolsServiceOp) Get(ctx context.Context) ([]IEXSymbol, error) {
 	symbols := []IEXSymbol{}
 	endpoint := fmt.Sprintf("/ref-data/iex/symbols")
 	err := s.client.GetJSON(ctx, endpoint, &symbols)
+	for i, symbol := range symbols {
+		ts, err := DateToTimestamp(symbol.Date)
+		if err == nil {
+			symbols[i].Date = ts
+		} else {
+			symbols[i].Date = symbol.date
+		}
+	}
 	return symbols, err
 }

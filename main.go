@@ -10,7 +10,6 @@ import (
 	"runtime/pprof"
 
 	"github.com/joho/godotenv"
-	ddbapi "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
 	"github.com/mcclurejt/mrkt-backend/config"
 )
@@ -49,10 +48,16 @@ func main() {
 
 	iexClient := iex.NewIEXCloudClient(conf.Api.IEXCloudAPIKey)
 	symbols, _ := iexClient.IexSymbols.Get(context.Background())
-	s := symbols[0]
+	symbolList := []string{}
+	for i := 0; i < 50; i++ {
+		symbolList = append(symbolList, symbols[i].Symbol)
+	}
+	ohlcvs, err := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolList, "20201103")
+	if err != nil {
+		fmt.Println("OH NO ERROR")
+	}
+	fmt.Println(ohlcvs)
 
-	input, _ := ddbapi.CreateTableInputFromStruct(s)
-	fmt.Println(input)
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
 	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)

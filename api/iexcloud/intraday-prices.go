@@ -59,9 +59,7 @@ func (s *IntradayPricesServiceOp) Get(ctx context.Context, symbol string) ([]Int
 func (s *IntradayPricesServiceOp) GetWithOptions(ctx context.Context, symbol string, options *IntradayOptions) ([]IntradayPrice, error) {
 	intradayPrices := []IntradayPrice{}
 	endpoint := fmt.Sprintf("/stock/%s/intraday-prices", url.PathEscape(symbol))
-	fmt.Println(endpoint)
 	endpoint, err := s.client.addOptions(endpoint, options)
-	fmt.Println(endpoint)
 	err = s.client.GetJSON(ctx, endpoint, &intradayPrices)
 	return intradayPrices, err
 }
