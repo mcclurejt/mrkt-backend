@@ -12,19 +12,19 @@ import (
 type QueryType string
 
 const (
-	BOOK            QueryType = "book"
-	DELAYED_QUOTE   QueryType = "delayed-quote"
-	INTRADAY_PRICES QueryType = "intraday-prices"
-	LARGEST_TRADES  QueryType = "largest-trades"
+	QueryTypeBook           QueryType = "book"
+	QueryTypeDelayedQuote   QueryType = "delayed-quote"
+	QueryTypeIntradayPrices QueryType = "intraday-prices"
+	QueryTypeLargestTrades  QueryType = "largest-trades"
 	// OHLC = "ohlc" // open-high-low-close
 	// PREVIOUS = "previous"
 	// QUOTE = "quote"
 
-	COMPANY              QueryType = "company"
-	INSIDER_ROSTER       QueryType = "insider-roster"
-	INSIDER_SUMMARY      QueryType = "insider-summary"
-	INSIDER_TRANSACTIONS QueryType = "insider-transactions"
-	PEERS                QueryType = "peers"
+	QueryTypeCompany             QueryType = "company"
+	QueryTypeInsiderRoster       QueryType = "insider-roster"
+	QueryTypeInsiderSummary      QueryType = "insider-summary"
+	QueryTypeInsiderTransactions QueryType = "insider-transactions"
+	QueryTypePeers               QueryType = "peers"
 )
 
 type BatchService interface {
