@@ -7,7 +7,7 @@ import (
 )
 
 type LargestTradesService interface {
-	Get(context.Context, string) (*[]LargestTrade, error)
+	Get(ctx context.Context, symbol string) (*[]LargestTrade, error)
 }
 
 type LargestTradesServiceOp struct {

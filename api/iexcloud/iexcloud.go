@@ -59,11 +59,6 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	c := &IexCloudClient{
 		base: base,
 	}
-
-	for _, option := range options {
-		option(c)
-	}
-
 	// services
 	c.Status = &StatusServiceOp{client: c}
 	c.Book = &BookServiceOp{client: c}
@@ -78,6 +73,10 @@ func NewIexCloudClient(apiKey string, options ...func(*IexCloudClient)) *IexClou
 	c.Batch = &BatchServiceOp{client: c}
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
 	c.Options = &OptionsServiceOp{client: c}
+
+	for _, option := range options {
+		option(c)
+	}
 
 	return c
 }

@@ -1,5 +1,10 @@
 package iexcloud
 
+import (
+	"reflect"
+	"strings"
+)
+
 // common - Models shared across the iexcloud API
 
 type BidAsk struct {
@@ -74,4 +79,34 @@ type Trade struct {
 	IsSinglePriceCross    bool    `json:"isSinglePriceCross"`
 	IsTradeThroughExempt  bool    `json:"isTradeThroughExempt"`
 	Timestamp             int     `json:"timestamp"`
+}
+
+// StrToPtr - returns a pointer to the provided string since &"" is not allowed by go
+func StrToPtr(s string) *string {
+	return &s
+}
+
+// SliceToString - takes a slice of string-like objects and converts them to a string containing the items separated by the separator (comma is default)
+func SliceToString(arr interface{}, sep *string) string {
+	t := reflect.TypeOf(arr)
+	if t.Kind() != reflect.Slice {
+		panic(arr)
+	}
+	if sep == nil {
+		s := ","
+		sep = &s
+	}
+	v := reflect.ValueOf(arr)
+	l := v.Len()
+	stringArr := make([]string, l)
+	for i := 0; i < l; i++ {
+		entry := v.Index(i)
+		stringArr[i] = entry.String()
+	}
+	return strings.Join(stringArr, *sep)
+}
+
+// EnumToString - Takes a custom-typed object and converts it to a string
+func EnumToString(e interface{}) string {
+	return reflect.ValueOf(e).String()
 }

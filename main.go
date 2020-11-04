@@ -73,8 +73,8 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	arr := []iex.QueryType{iex.BOOK, iex.DELAYED_QUOTE, iex.INTRADAY_PRICES}
-	fmt.Println(iex.ToURLString(arr))
+	arr := []iex.QueryType{iex.QueryTypeBook, iex.QueryTypeDelayedQuote, iex.QueryTypeCompany}
+	fmt.Println(iex.SliceToString(arr, nil))
 
 	// avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
 	// var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry

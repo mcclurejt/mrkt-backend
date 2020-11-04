@@ -7,8 +7,8 @@ import (
 )
 
 type IntradayPricesService interface {
-	Get(context.Context, string) (*[]IntradayPrice, error)
-	GetWithOptions(context.Context, string, *IntradayOptions) (*[]IntradayPrice, error)
+	Get(ctx context.Context, symbol string) ([]IntradayPrice, error)
+	GetWithOptions(ctx context.Context, symbol string, options *IntradayOptions) ([]IntradayPrice, error)
 }
 
 type IntradayPricesServiceOp struct {
@@ -49,15 +49,15 @@ type IntradayOptions struct {
 	ExactDate       string `url:"exactDate,omitempty"` // Formatted as YYYYMMDD
 }
 
-func (s *IntradayPricesServiceOp) Get(ctx context.Context, symbol string) (*[]IntradayPrice, error) {
-	intradayPrices := new([]IntradayPrice)
+func (s *IntradayPricesServiceOp) Get(ctx context.Context, symbol string) ([]IntradayPrice, error) {
+	intradayPrices := []IntradayPrice{}
 	endpoint := fmt.Sprintf("/stock/%s/intraday-prices", url.PathEscape(symbol))
 	err := s.client.GetJSON(ctx, endpoint, &intradayPrices)
 	return intradayPrices, err
 }
 
-func (s *IntradayPricesServiceOp) GetWithOptions(ctx context.Context, symbol string, options *IntradayOptions) (*[]IntradayPrice, error) {
-	intradayPrices := new([]IntradayPrice)
+func (s *IntradayPricesServiceOp) GetWithOptions(ctx context.Context, symbol string, options *IntradayOptions) ([]IntradayPrice, error) {
+	intradayPrices := []IntradayPrice{}
 	endpoint := fmt.Sprintf("/stock/%s/intraday-prices", url.PathEscape(symbol))
 	fmt.Println(endpoint)
 	endpoint, err := s.client.addOptions(endpoint, options)

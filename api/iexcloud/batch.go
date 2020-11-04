@@ -3,8 +3,6 @@ package iexcloud
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"strings"
 )
 
 // Query Types
@@ -60,8 +58,8 @@ func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, t
 	batch := new(map[string]Batch)
 	endpoint := fmt.Sprintf("/stock/market/batch/")
 	options := &BatchOptions{
-		Symbols: ToURLString(symbols),
-		Types:   ToURLString(types),
+		Symbols: SliceToString(symbols, StrToPtr(",")),
+		Types:   SliceToString(types, StrToPtr(",")),
 	}
 	endpoint, err := s.client.addOptions(endpoint, options)
 	if err != nil {
@@ -75,7 +73,7 @@ func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, type
 	batch := new(Batch)
 	endpoint := fmt.Sprintf("/stock/%s/batch/", symbol)
 	options := &SymbolBatchOptions{
-		Types: ToURLString(types),
+		Types: SliceToString(types, StrToPtr(",")),
 	}
 	endpoint, err := s.client.addOptions(endpoint, options)
 	if err != nil {
@@ -83,20 +81,4 @@ func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, type
 	}
 	err = s.client.GetJSON(ctx, endpoint, &batch)
 	return batch, err
-}
-
-// ToURLString - takes a slice of string-like objects and converts them to a string containing the comma-separated items
-func ToURLString(arr interface{}) string {
-	t := reflect.TypeOf(arr)
-	if t.Kind() != reflect.Slice {
-		panic(arr)
-	}
-	v := reflect.ValueOf(arr)
-	l := v.Len()
-	stringArr := make([]string, l)
-	for i := 0; i < l; i++ {
-		entry := v.Index(i)
-		stringArr[i] = entry.String()
-	}
-	return strings.Join(stringArr, ",")
 }

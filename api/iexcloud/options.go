@@ -6,9 +6,20 @@ import (
 	"net/url"
 )
 
+type OptionsSide string
+
+const (
+	OptionsSideCall OptionsSide = "call"
+	OptionsSidePut  OptionsSide = "put"
+)
+
+func (s OptionsSide) String() string {
+	return EnumToString(s)
+}
+
 type OptionsService interface {
-	GetOptionsExpDates(context.Context, string) (*OptionsExpDates, error)
-	GetOptionContracts(context.Context, string, string, string) (*[]OptionContract, error)
+	GetOptionsExpDates(ctx context.Context, symbol string) (*OptionsExpDates, error)
+	GetOptionContracts(ctx context.Context, symbol string, expiration string, side OptionsSide) ([]OptionContract, error)
 }
 
 type OptionsServiceOp struct {
@@ -37,15 +48,15 @@ type OptionContract struct {
 }
 
 func (s *OptionsServiceOp) GetOptionsExpDates(ctx context.Context, symbol string) (*OptionsExpDates, error) {
-	options := new(OptionsExpDates)
+	options := &OptionsExpDates{}
 	endpoint := fmt.Sprintf("/stock/%s/options", url.PathEscape(symbol))
-	err := s.client.GetJSON(ctx, endpoint, &options)
+	err := s.client.GetJSON(ctx, endpoint, options)
 	return options, err
 }
 
-func (s *OptionsServiceOp) GetOptionContracts(ctx context.Context, symbol string, expiration string, side string) (*[]OptionContract, error) {
-	options := new([]OptionContract)
-	endpoint := fmt.Sprintf("/stock/%s/options/%s/%s", url.PathEscape(symbol), expiration, side)
+func (s *OptionsServiceOp) GetOptionContracts(ctx context.Context, symbol string, expiration string, side OptionsSide) ([]OptionContract, error) {
+	options := []OptionContract{}
+	endpoint := fmt.Sprintf("/stock/%s/options/%s/%s", url.PathEscape(symbol), expiration, side.String())
 	err := s.client.GetJSON(ctx, endpoint, &options)
 	return options, err
 }
