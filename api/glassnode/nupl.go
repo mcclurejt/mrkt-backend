@@ -8,7 +8,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/mcclurejt/mrkt-backend/api/common"
 	db "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 	"github.com/mcclurejt/mrkt-backend/database"
 )
@@ -30,7 +29,7 @@ type NetUnrealizedProfitLossEntry struct {
 
 type NetUnrealizedProfitLossService interface {
 	Get(options *NetUnrealizedProfitLossOptions) ([]*NetUnrealizedProfitLossEntry, error)
-	GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- common.ResultError)
+	GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- ResultError)
 	Sync(options *NetUnrealizedProfitLossOptions, db database.SQLClient) error
 
 	GetCreateTableInput() *dynamodb.CreateTableInput
@@ -122,12 +121,12 @@ func (n netUnrealizedProfitLossServicer) Get(options *NetUnrealizedProfitLossOpt
 	return ns, nil
 }
 
-func (n netUnrealizedProfitLossServicer) GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- common.ResultError) {
+func (n netUnrealizedProfitLossServicer) GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- ResultError) {
 	nupl, err := n.Get(options)
 	if err != nil {
-		ch <- common.ResultError{Error: err}
+		ch <- ResultError{Error: err}
 	} else {
-		ch <- common.ResultError{Result: nupl}
+		ch <- ResultError{Result: nupl}
 	}
 }
 

@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"reflect"
 	"time"
-
-	"github.com/mcclurejt/mrkt-backend/api/common"
 )
 
 type GlassNodeRouteName string
@@ -36,12 +34,12 @@ func (c *GlassNodeClient) BatchCall(routeName GlassNodeRouteName, assets []strin
 	case NuplRouteName:
 		o, ok := options.(*NetUnrealizedProfitLossOptions)
 		if !ok {
-			return common.OptionParseError{DesiredType: reflect.TypeOf(&NetUnrealizedProfitLossOptions{})}
+			return OptionParseError{DesiredType: reflect.TypeOf(&NetUnrealizedProfitLossOptions{})}
 		}
 		return c.GetBatchNupl(assets, target, o)
 
 	default:
-		return &common.RouteNotRecognizedError{Route: string(routeName)}
+		return &RouteNotRecognizedError{Route: string(routeName)}
 	}
 }
 
