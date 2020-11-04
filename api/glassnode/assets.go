@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
-	"github.com/mcclurejt/mrkt-backend/database"
 )
 
 const (
@@ -35,7 +33,6 @@ type Asset struct {
 
 type AssetService interface {
 	Get(options *AssetOptions) ([]*Asset, error)
-	Sync(db database.SQLClient) error
 }
 
 type AssetOptions struct {
@@ -71,11 +68,6 @@ func (s *assetServicer) Get(options *AssetOptions) ([]*Asset, error) {
 		return nil, err
 	}
 	return ts, nil
-}
-
-func (s *assetServicer) Sync(db database.SQLClient) error {
-	//TODO
-	return nil
 }
 
 func parseAssets(resp *http.Response, options *AssetOptions) ([]*Asset, error) {

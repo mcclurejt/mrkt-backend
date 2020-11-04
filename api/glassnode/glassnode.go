@@ -29,7 +29,7 @@ func NewGlassNodeClient(apiKey string) *GlassNodeClient {
 	}
 }
 
-func (c *GlassNodeClient) BatchCall(routeName GlassNodeRouteName, assets []string, target interface{}, options common.RequestOptions) error {
+func (c *GlassNodeClient) BatchCall(routeName GlassNodeRouteName, assets []string, target interface{}, options RequestOptions) error {
 	switch routeName {
 	case NuplRouteName:
 		o, ok := options.(*NetUnrealizedProfitLossOptions)
@@ -44,7 +44,7 @@ func (c *GlassNodeClient) BatchCall(routeName GlassNodeRouteName, assets []strin
 }
 
 func (c *GlassNodeClient) GetBatchNupl(assets []string, target interface{}, options *NetUnrealizedProfitLossOptions) error {
-	ch := make(chan common.ResultError)
+	ch := make(chan ResultError)
 	for _, asset := range assets {
 		options = &NetUnrealizedProfitLossOptions{
 			Asset:    asset,
@@ -61,7 +61,7 @@ func (c *GlassNodeClient) GetBatchNupl(assets []string, target interface{}, opti
 			Until:    options.Until})
 	}
 	t := target.([]*NetUnrealizedProfitLossEntry)
-	err := common.CollectResults(ch, len(assets), &t)
+	err := CollectResults(ch, len(assets), &t)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ type baseClient struct {
 	apiKey     string
 }
 
-func (g baseClient) call(options common.RequestOptions) (*http.Response, error) {
+func (g baseClient) call(options RequestOptions) (*http.Response, error) {
 	url := GlassNodeBaseURL + options.ToQueryString() + fmt.Sprintf("&api_key=%s", g.apiKey)
 	return g.httpClient.Get(url)
 }
@@ -81,7 +81,7 @@ func (g baseClient) call(options common.RequestOptions) (*http.Response, error) 
 func newGlassNodeBaseClient(apiKey string) *baseClient {
 	return &baseClient{
 		httpClient: &http.Client{
-			Timeout: common.DefaultTimeout * time.Second,
+			Timeout: DefaultTimeout * time.Second,
 		},
 		apiKey: apiKey,
 	}

@@ -16,8 +16,8 @@ type IexSymbolsServiceOp struct {
 var _ IexSymbolsService = &IexSymbolsServiceOp{}
 
 type IexSymbol struct {
-	Symbol    string `json:"symbol"`
-	Date      string `json:"date"`
+	Symbol    string `json:"symbol" an:"Symbol" at:"S" kt:"HASH"`
+	Date      string `json:"date" an:"Date" at:"S" kt:"RANGE"`
 	IsEnabled bool   `json:"isEnabled"`
 }
 

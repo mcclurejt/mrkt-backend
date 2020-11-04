@@ -10,7 +10,9 @@ import (
 	"runtime/pprof"
 
 	"github.com/joho/godotenv"
+	ddbapi "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
+	"github.com/mcclurejt/mrkt-backend/config"
 )
 
 //env
@@ -35,16 +37,7 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	// conf := config.New() //env
-
-	// msClient := ms.NewMarketStackClient("29250803996c88be8fe2e1ef46dce84e")
-	// var tickers []*ms.TickerEntry
-	// msOptions := ms.DefaultTickerOptions()
-	// msOptions.Limit = 1200
-	// err := msClient.BatchCall(ms.TickerRouteName, &tickers, msOptions)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
+	conf := config.New() //env
 
 	// gnClient := gn.NewGlassNodeClient("105d32cc-afc0-4358-b335-891a35e80736")
 	// var nupls []*gn.NetUnrealizedProfitLossEntry
@@ -54,8 +47,12 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	iexClient := iex.NewIexCloudClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
-	iexSymbs, err := iexClient.IexSymbols.Get(context.Background())
+	iexClient := iex.NewIexCloudClient(conf.Api.IEXCloudAPIKey)
+	symbols, _ := iexClient.IexSymbols.Get(context.Background())
+	s := symbols[0]
+
+	input, _ := ddbapi.CreateTableInputFromStruct(s)
+	fmt.Println(input)
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
 	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)
@@ -63,16 +60,16 @@ func main() {
 	// // _, err = iexClient.IntradayPrices.Get(context.Background(), "twtr")
 	// types := []string{"company", "insider-summary", "insider-transactions", "insider-roster"}
 	// lt, err := iexClient.Batch.GetSymbolBatch(context.Background(), "amzn", types)
-	fmt.Println(iexSymbs)
+	// fmt.Println(iexSymbs)
 	// sp, err := iexClient.SectorPerformance.Get(context.Background())
 	// fmt.Println(sp)
 	// options := &iex.IntradayOptions{
 	// 	ChangeFromClose: true,
 	// }
 	// _, err = iexClient.IntradayPrices.GetWithOptions(context.Background(), "twtr", options)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
 
 	// arr := []iex.QueryType{iex.QueryTypeBook, iex.QueryTypeDelayedQuote, iex.QueryTypeCompany}
 	// fmt.Println(iex.SliceToString(arr, nil))

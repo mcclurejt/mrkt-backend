@@ -3,6 +3,7 @@ package iexcloud
 import (
 	"reflect"
 	"strings"
+	"time"
 )
 
 // common - Models shared across the iexcloud API
@@ -109,4 +110,13 @@ func SliceToString(arr interface{}, sep *string) string {
 // EnumToString - Takes a custom-typed object and converts it to a string
 func EnumToString(e interface{}) string {
 	return reflect.ValueOf(e).String()
+}
+
+// DateToTimestamp - Takes a date in the format of yyyy-mm-dd and converts it to a timestamp
+func DateToTimestamp(d string) (string, error) {
+	t, err := time.Parse("2006-01-02", d)
+	if err != nil {
+		return "", err
+	}
+	return t.Format(time.RFC3339), nil
 }

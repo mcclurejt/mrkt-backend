@@ -23,7 +23,7 @@ func New() *Config {
 	return &Config{
 		Api: ApiConfig{
 			GlassNodeAPIKey: getEnv("GLASSNODE_API_KEY", ""),
-			IEXCloudAPIKey:  getEnv("IEX_CLOUD_API_KEY"),
+			IEXCloudAPIKey:  getEnv("IEX_CLOUD_API_KEY", ""),
 		},
 		Db: DbConfig{
 			Datasource: getEnv("DB_DATASOURCE", ""),

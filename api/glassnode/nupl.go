@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	db "github.com/mcclurejt/mrkt-backend/api/dynamodb"
-	"github.com/mcclurejt/mrkt-backend/database"
 )
 
 type Interval string
@@ -30,7 +29,6 @@ type NetUnrealizedProfitLossEntry struct {
 type NetUnrealizedProfitLossService interface {
 	Get(options *NetUnrealizedProfitLossOptions) ([]*NetUnrealizedProfitLossEntry, error)
 	GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- ResultError)
-	Sync(options *NetUnrealizedProfitLossOptions, db database.SQLClient) error
 
 	GetCreateTableInput() *dynamodb.CreateTableInput
 	GetPutItemInput() *dynamodb.PutItemInput
@@ -128,10 +126,6 @@ func (n netUnrealizedProfitLossServicer) GetBatch(options *NetUnrealizedProfitLo
 	} else {
 		ch <- ResultError{Result: nupl}
 	}
-}
-
-func (n netUnrealizedProfitLossServicer) Sync(options *NetUnrealizedProfitLossOptions, db database.SQLClient) error {
-	return nil
 }
 
 func parseNetUnrealizedProfitLoss(resp *http.Response) ([]*NetUnrealizedProfitLossEntry, error) {
