@@ -10,6 +10,7 @@ import (
 	"runtime/pprof"
 
 	"github.com/joho/godotenv"
+	util "github.com/mcclurejt/mrkt-backend/api/dynamodbutil"
 	iex "github.com/mcclurejt/mrkt-backend/api/iexcloud"
 	"github.com/mcclurejt/mrkt-backend/config"
 )
@@ -48,16 +49,18 @@ func main() {
 
 	iexClient := iex.NewIEXCloudClient(conf.Api.IEXCloudAPIKey)
 	symbols, _ := iexClient.IexSymbols.Get(context.Background())
-	symbolList := []string{}
-	for i := 0; i < 50; i++ {
-		symbolList = append(symbolList, symbols[i].Symbol)
-	}
-	ohlcvs, err := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolList, "20201103")
-	if err != nil {
-		fmt.Println("OH NO ERROR")
-	}
-	fmt.Println(ohlcvs)
+	symbol := symbols[0]
 
+	ohlcv, _ := iexClient.Chart.GetSingleDay(context.Background(), symbol.Symbol, "20201103")
+	item := ohlcv[0]
+
+	createTableInput, err := util.CreateTableInputFromStruct(iex.OHLCV{})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	putItemInput, _ := util.PutItemInputFromStruct(item)
+	fmt.Println(createTableInput)
+	fmt.Println(putItemInput)
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
 	// // books, err := iexClient.Book.GetBatch(context.Background(), symbs)
@@ -78,14 +81,6 @@ func main() {
 
 	// arr := []iex.QueryType{iex.QueryTypeBook, iex.QueryTypeDelayedQuote, iex.QueryTypeCompany}
 	// fmt.Println(iex.SliceToString(arr, nil))
-
-	// avClient := av.NewAlphaVantageClient("LXCN06KPP1KPOYC2")
-	// var dailyTimeSeries []*av.DailyAdjustedTimeSeriesEntry
-	// dailyTimeSeriesOptions := &av.DailyAdjustedTimeSeriesOptions{OutputSize: av.OutputSizeDefault}
-	// err = avClient.BatchCall(av.DailyTimeSeriesRouteName, []string{"BABA", "BRK-A", "BRK-B", "AAPL"}, &dailyTimeSeries, dailyTimeSeriesOptions)
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// }
 
 	// save memory profiling for last
 	if *memprofile != "" {

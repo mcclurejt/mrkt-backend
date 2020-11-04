@@ -26,12 +26,16 @@ func (s *IEXSymbolsServiceOp) Get(ctx context.Context) ([]IEXSymbol, error) {
 	symbols := []IEXSymbol{}
 	endpoint := fmt.Sprintf("/ref-data/iex/symbols")
 	err := s.client.GetJSON(ctx, endpoint, &symbols)
+	activeSymbols := []IEXSymbol{}
 	for i, symbol := range symbols {
 		ts, err := DateToTimestamp(symbol.Date)
 		if err == nil {
 			symbols[i].Date = ts
 		} else {
 			symbols[i].Date = symbol.date
+		}
+		if symbols[i].isEnabled {
+			activeSymbols = append(activeSymbols, symbols[i])
 		}
 	}
 	return symbols, err

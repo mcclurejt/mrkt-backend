@@ -62,8 +62,8 @@ type ChartServiceOp struct {
 var _ ChartService = &ChartServiceOp{}
 
 type OHLCV struct {
-	Symbol        string
-	Date          string  `json:"date"`
+	Symbol        string  `json:"symbol" attributetype:"S" keytype:"RANGE"`
+	Date          string  `json:"date" attributetype:"S" keytype:"HASH"`
 	Open          float64 `json:"open"`
 	High          float64 `json:"high"`
 	Low           float64 `json:"low"`
@@ -94,6 +94,9 @@ func (c *ChartServiceOp) Get(ctx context.Context, symbol string, rang ChartRange
 		return ohlcvs, err
 	}
 	err = c.client.GetJSON(ctx, endpoint, &ohlcvs)
+	for i := 0; i < len(ohlcvs); i++ {
+		ohlcvs[i].Symbol = symbol
+	}
 	return ohlcvs, err
 }
 
