@@ -7,7 +7,7 @@ import (
 )
 
 type PeersService interface {
-	Get(context.Context, string) (*[]string, error)
+	Get(ctx context.Context, symbol string) ([]string, error)
 }
 
 type PeersServiceOp struct {
@@ -16,8 +16,8 @@ type PeersServiceOp struct {
 
 var _ PeersService = &PeersServiceOp{}
 
-func (s *PeersServiceOp) Get(ctx context.Context, symbol string) (*[]string, error) {
-	peers := new([]string)
+func (s *PeersServiceOp) Get(ctx context.Context, symbol string) ([]string, error) {
+	peers := []string{}
 	endpoint := fmt.Sprintf("/stock/%s/peers", url.PathEscape(symbol))
 	err := s.client.GetJSON(ctx, endpoint, &peers)
 	return peers, err

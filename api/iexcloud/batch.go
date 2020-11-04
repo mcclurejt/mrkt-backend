@@ -26,7 +26,7 @@ const (
 )
 
 type BatchService interface {
-	GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (*map[string]Batch, error)
+	GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (map[string]Batch, error)
 	GetSymbolBatch(ctx context.Context, symbol string, types []QueryType) (*Batch, error)
 }
 
@@ -54,8 +54,8 @@ type SymbolBatchOptions struct {
 	Types string `url:"types,omitEmpty"`
 }
 
-func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (*map[string]Batch, error) {
-	batch := new(map[string]Batch)
+func (s *BatchServiceOp) GetMarketBatch(ctx context.Context, symbols []string, types []QueryType) (map[string]Batch, error) {
+	batch := map[string]Batch{}
 	endpoint := fmt.Sprintf("/stock/market/batch/")
 	options := &BatchOptions{
 		Symbols: SliceToString(symbols, StrToPtr(",")),
@@ -79,6 +79,6 @@ func (s *BatchServiceOp) GetSymbolBatch(ctx context.Context, symbol string, type
 	if err != nil {
 		return nil, err
 	}
-	err = s.client.GetJSON(ctx, endpoint, &batch)
+	err = s.client.GetJSON(ctx, endpoint, batch)
 	return batch, err
 }

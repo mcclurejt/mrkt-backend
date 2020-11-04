@@ -7,7 +7,7 @@ import (
 )
 
 type InsiderTransactionsService interface {
-	Get(context.Context, string) (*[]InsiderTransaction, error)
+	Get(ctx context.Context, symbol string) ([]InsiderTransaction, error)
 }
 
 type InsiderTransactionsServiceOp struct {
@@ -25,8 +25,8 @@ type InsiderTransaction struct {
 	Value         float64 `json:"tranValue"`
 }
 
-func (s *InsiderTransactionsServiceOp) Get(ctx context.Context, symbol string) (*[]InsiderTransaction, error) {
-	it := new([]InsiderTransaction)
+func (s *InsiderTransactionsServiceOp) Get(ctx context.Context, symbol string) ([]InsiderTransaction, error) {
+	it := []InsiderTransaction{}
 	endpoint := fmt.Sprintf("/stock/%s/insider-transactions", url.PathEscape(symbol))
 	err := s.client.GetJSON(ctx, endpoint, &it)
 	return it, err

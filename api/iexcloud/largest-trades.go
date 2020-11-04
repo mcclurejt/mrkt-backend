@@ -7,7 +7,7 @@ import (
 )
 
 type LargestTradesService interface {
-	Get(ctx context.Context, symbol string) (*[]LargestTrade, error)
+	Get(ctx context.Context, symbol string) ([]LargestTrade, error)
 }
 
 type LargestTradesServiceOp struct {
@@ -25,8 +25,8 @@ type LargestTrade struct {
 	VenueName string  `json:"venueName"`
 }
 
-func (s *LargestTradesServiceOp) Get(ctx context.Context, symbol string) (*[]LargestTrade, error) {
-	lt := new([]LargestTrade)
+func (s *LargestTradesServiceOp) Get(ctx context.Context, symbol string) ([]LargestTrade, error) {
+	lt := []LargestTrade{}
 	endpoint := fmt.Sprintf("/stock/%s/largest-trades", url.PathEscape(symbol))
 	err := s.client.GetJSON(ctx, endpoint, &lt)
 	return lt, err

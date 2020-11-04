@@ -5,7 +5,7 @@ import (
 )
 
 type StatusService interface {
-	Get(context.Context) (*Status, error)
+	Get(ctx context.Context) (*Status, error)
 }
 
 type StatusServiceOp struct {
@@ -24,6 +24,6 @@ type Status struct {
 func (s *StatusServiceOp) Get(ctx context.Context) (*Status, error) {
 	status := new(Status)
 	endpoint := "/status"
-	err := s.client.GetJSON(ctx, endpoint, &status)
+	err := s.client.GetJSON(ctx, endpoint, status)
 	return status, err
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type DelayedQuoteService interface {
-	Get(context.Context, string) (*DelayedQuote, error)
+	Get(ctx context.Context, symbol string) (*DelayedQuote, error)
 }
 
 type DelayedQuoteServiceOp struct {
@@ -30,6 +30,6 @@ type DelayedQuote struct {
 func (s *DelayedQuoteServiceOp) Get(ctx context.Context, symbol string) (*DelayedQuote, error) {
 	delayedQuote := new(DelayedQuote)
 	endpoint := fmt.Sprintf("/stock/%s/delayed-quote", url.PathEscape(symbol))
-	err := s.client.GetJSON(ctx, endpoint, &delayedQuote)
+	err := s.client.GetJSON(ctx, endpoint, delayedQuote)
 	return delayedQuote, err
 }

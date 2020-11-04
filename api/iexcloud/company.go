@@ -7,7 +7,7 @@ import (
 )
 
 type CompanyService interface {
-	Get(context.Context, string) (*Company, error)
+	Get(ctx context.Context, symbol string) (*Company, error)
 }
 
 type CompanyServiceOp struct {
@@ -42,6 +42,6 @@ type Company struct {
 func (s *CompanyServiceOp) Get(ctx context.Context, symbol string) (*Company, error) {
 	company := new(Company)
 	endpoint := fmt.Sprintf("/stock/%s/company", url.PathEscape(symbol))
-	err := s.client.GetJSON(ctx, endpoint, &company)
+	err := s.client.GetJSON(ctx, endpoint, company)
 	return company, err
 }

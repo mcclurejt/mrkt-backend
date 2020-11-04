@@ -7,7 +7,7 @@ import (
 )
 
 type BookService interface {
-	Get(context.Context, string) (*Book, error)
+	Get(ctx context.Context, symbol string) (*Book, error)
 }
 
 type BookServiceOp struct {
@@ -26,6 +26,6 @@ type Book struct {
 func (s *BookServiceOp) Get(ctx context.Context, symbol string) (*Book, error) {
 	book := new(Book)
 	endpoint := fmt.Sprintf("/stock/%s/book", url.PathEscape(symbol))
-	err := s.client.GetJSON(ctx, endpoint, &book)
+	err := s.client.GetJSON(ctx, endpoint, book)
 	return book, err
 }

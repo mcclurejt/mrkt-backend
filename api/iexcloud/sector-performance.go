@@ -6,7 +6,7 @@ import (
 )
 
 type SectorPerformanceService interface {
-	Get(context.Context) (*[]SectorPerformance, error)
+	Get(ctx context.Context) ([]SectorPerformance, error)
 }
 
 type SectorPerformanceServiceOp struct {
@@ -22,8 +22,8 @@ type SectorPerformance struct {
 	LastUpdated int     `json:"lastUpdated"`
 }
 
-func (s *SectorPerformanceServiceOp) Get(ctx context.Context) (*[]SectorPerformance, error) {
-	sp := new([]SectorPerformance)
+func (s *SectorPerformanceServiceOp) Get(ctx context.Context) ([]SectorPerformance, error) {
+	sp := []SectorPerformance{}
 	endpoint := fmt.Sprintf("/stock/market/sector-performance")
 	err := s.client.GetJSON(ctx, endpoint, &sp)
 	return sp, err

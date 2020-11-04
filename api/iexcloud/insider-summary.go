@@ -7,7 +7,7 @@ import (
 )
 
 type InsiderSummaryService interface {
-	Get(context.Context, string) (*[]InsiderSummary, error)
+	Get(ctx context.Context, symbol string) ([]InsiderSummary, error)
 }
 
 type InsiderSummaryServiceOp struct {
@@ -24,8 +24,8 @@ type InsiderSummary struct {
 	TotalSold      int    `json:"totalSold"`
 }
 
-func (s *InsiderSummaryServiceOp) Get(ctx context.Context, symbol string) (*[]InsiderSummary, error) {
-	is := new([]InsiderSummary)
+func (s *InsiderSummaryServiceOp) Get(ctx context.Context, symbol string) ([]InsiderSummary, error) {
+	is := []InsiderSummary{}
 	endpoint := fmt.Sprintf("/stock/%s/insider-summary", url.PathEscape(symbol))
 	err := s.client.GetJSON(ctx, endpoint, &is)
 	return is, err
