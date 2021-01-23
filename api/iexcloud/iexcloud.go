@@ -97,7 +97,7 @@ func newIEXCloudBaseClient(apiKey string) *baseClient {
 		},
 		apiKey:      apiKey,
 		url:         IEXCloudBaseURL,
-		rateLimiter: rate.NewLimiter(10, 1),
+		rateLimiter: rate.NewLimiter(100, 20),
 	}
 }
 

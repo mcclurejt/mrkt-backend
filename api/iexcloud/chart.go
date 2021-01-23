@@ -116,7 +116,7 @@ func (c *ChartServiceOp) GetBatch(ctx context.Context, symbols []string, options
 	symbolBatches := [][]string{}
 	// create the batches of symbols to be worked on
 	for i := 0; i < len(symbols); i += MaxBatchSize {
-		if i+MaxBatchSize > len(symbols) {
+		if i+MaxBatchSize >= len(symbols) {
 			symbolBatches = append(symbolBatches, symbols[i:len(symbols)])
 		} else {
 			symbolBatches = append(symbolBatches, symbols[i:(i+MaxBatchSize)])
@@ -166,6 +166,7 @@ func (c *ChartServiceOp) batchWorker(ctx context.Context, symbolBatches chan []s
 				ohlcvs = append(ohlcvs, ohlcv)
 			}
 		}
+		fmt.Println(ohlcvs)
 		results <- ohlcvs
 	}
 }

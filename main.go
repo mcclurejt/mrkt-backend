@@ -53,21 +53,22 @@ func main() {
 	for _, v := range symbols {
 		symbolTexts = append(symbolTexts, v.Symbol)
 	}
-	ohlcv1, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:1000], "20201028")
-	ohlcv2, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:1000], "20201028")
+	ohlcv1, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:2501], "20201028")
+	// ohlcv2, _ := iexClient.Chart.GetBatchSingleDay(context.Background(), symbolTexts[0:2500], "20201028")
+	fmt.Println(ohlcv1)
 
-	symbolMap := map[string]iex.OHLCV{}
-	for _, v := range ohlcv1 {
-		symbolMap[v.Symbol] = v
-	}
+	// symbolMap := map[string]iex.OHLCV{}
+	// for _, v := range ohlcv1 {
+	// 	symbolMap[v.Symbol] = v
+	// }
 
-	for _, v := range ohlcv2 {
-		if _, ok := symbolMap[v.Symbol]; !ok {
-			fmt.Println(v.Symbol)
-			ohlcv, _ := iexClient.Chart.GetSingleDay(context.Background(), v.Symbol, "20201028")
-			fmt.Printf("%s : %v\n", v.Symbol, ohlcv)
-		}
-	}
+	// for _, v := range ohlcv2 {
+	// 	if _, ok := symbolMap[v.Symbol]; !ok {
+	// 		fmt.Println(v.Symbol)
+	// 		ohlcv, _ := iexClient.Chart.GetSingleDay(context.Background(), v.Symbol, "20201028")
+	// 		fmt.Printf("%s : %v\n", v.Symbol, ohlcv)
+	// 	}
+	// }
 
 	// symbs := []string{"twtr", "amzn"}
 	// fmt.Printf("Symbols: %s", strings.Join(symbs, ","))
