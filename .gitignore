@@ -21,3 +21,9 @@ mrkt
 
 cpu.prof
 mem.prof
+
+bin
+
+.DS_Store
+output.xlsx
+tmp.json

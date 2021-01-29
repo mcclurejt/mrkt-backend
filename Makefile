@@ -1,4 +1,4 @@
-.PHONY: build,
+.PHONY: build run dev dev-build dev-run cpu-profile mem-profile tablegen
 
 build:
 	go build -o mrkt
@@ -19,3 +19,9 @@ cpu-profile:
 
 mem-profile:
 	go tool pprof mrkt mem.prof
+
+tg-build:
+	go build -o ./bin/tg ./cmd/tablegen
+
+tg-run: tg-build
+	./bin/tg

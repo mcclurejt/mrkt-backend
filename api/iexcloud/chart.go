@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	chartEndpointURL      = "/stock/%s/chart/%s/%s"
-	chartBatchEndpointURL = "/stock/market/batch"
-	MaxBatchSize          = 100
+	chartEndpointURL          = "/stock/%s/chart/%s"
+	chartEndpointURLSingleDay = "/stock/%s/chart/%s/%s"
+	chartBatchEndpointURL     = "/stock/market/batch"
+	MaxBatchSize              = 100
 )
 
 type ChartRange string
@@ -50,7 +51,7 @@ var chartValidRanges = map[string]bool{
 }
 
 type ChartService interface {
-	Get(ctx context.Context, symbol string, rang ChartRange, date string, options *ChartOptions) ([]OHLCV, error)
+	Get(ctx context.Context, symbol string, rang ChartRange, options *ChartOptions) ([]OHLCV, error)
 	GetSingleDay(ctx context.Context, symbol string, date string) ([]OHLCV, error)
 	GetBatch(ctx context.Context, symbols []string, options *ChartOptions) ([]OHLCV, error)
 	GetBatchSingleDay(ctx context.Context, symbols []string, date string) ([]OHLCV, error)
@@ -87,9 +88,9 @@ type ChartOptions struct {
 	IncludeToday    bool       `url:"includeToday,omitempty"`
 }
 
-func (c *ChartServiceOp) Get(ctx context.Context, symbol string, rang ChartRange, date string, options *ChartOptions) ([]OHLCV, error) {
+func (c *ChartServiceOp) Get(ctx context.Context, symbol string, rang ChartRange, options *ChartOptions) ([]OHLCV, error) {
 	ohlcvs := []OHLCV{}
-	endpoint := fmt.Sprintf(chartEndpointURL, symbol, rang, date)
+	endpoint := fmt.Sprintf(chartEndpointURL, symbol, rang)
 	endpoint, err := c.client.addOptions(endpoint, options)
 	if err != nil {
 		return ohlcvs, err
@@ -102,10 +103,18 @@ func (c *ChartServiceOp) Get(ctx context.Context, symbol string, rang ChartRange
 }
 
 func (c *ChartServiceOp) GetSingleDay(ctx context.Context, symbol string, date string) ([]OHLCV, error) {
-	options := &ChartOptions{
-		ChartByDay: true,
+	ohlcvs := []OHLCV{}
+	options := &ChartOptions{ChartByDay: true}
+	endpoint := fmt.Sprintf(chartEndpointURLSingleDay, symbol, "date", date)
+	endpoint, err := c.client.addOptions(endpoint, options)
+	if err != nil {
+		return ohlcvs, err
 	}
-	return c.Get(ctx, symbol, ChartRangeDate, date, options)
+	err = c.client.GetJSON(ctx, endpoint, &ohlcvs)
+	for i := 0; i < len(ohlcvs); i++ {
+		ohlcvs[i].Symbol = symbol
+	}
+	return ohlcvs, err
 }
 
 func (c *ChartServiceOp) GetBatch(ctx context.Context, symbols []string, options *ChartOptions) ([]OHLCV, error) {
