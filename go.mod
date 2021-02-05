@@ -9,6 +9,7 @@ require (
 	github.com/gocarina/gocsv v0.0.0-20200925213129-04be9ee2e1a2
 	github.com/google/go-querystring v1.0.0
 	github.com/joho/godotenv v1.3.0
+	github.com/sirupsen/logrus v1.7.0
 	github.com/tealeg/xlsx v1.0.5
 	github.com/tealeg/xlsx/v3 v3.2.3
 	github.com/urfave/cli/v2 v2.2.0

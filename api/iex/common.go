@@ -1,6 +1,7 @@
-package iexcloud
+package iex
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
@@ -128,4 +129,15 @@ func DateToTimestamp(d string) (string, error) {
 func TimeToTimestamp(seconds int64) string {
 	t := time.Unix(seconds, 0)
 	return t.Format(DefaultTimeStampFormat)
+}
+
+func PrettyPrintStruct(v interface{}) string {
+	output := ""
+	rv := reflect.ValueOf(v)
+	for i := 0; i < rv.NumField(); i++ {
+		if !rv.Field(i).IsZero() {
+			output += fmt.Sprintf("%s: %v, ", rv.Type().Field(i).Name, rv.Field(i).Interface())
+		}
+	}
+	return output
 }

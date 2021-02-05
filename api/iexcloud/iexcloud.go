@@ -81,7 +81,7 @@ func NewIEXCloudClient(apiKey string, options ...func(*IEXCloudClient)) *IEXClou
 	c.SectorPerformance = &SectorPerformanceServiceOp{client: c}
 	c.Options = &OptionsServiceOp{client: c}
 	c.IexSymbols = &IEXSymbolsServiceOp{client: c}
-	c.Chart = &ChartServiceOp{client: c}
+	// c.Chart = &RealChartService{client: c}
 
 	for _, option := range options {
 		option(c)
