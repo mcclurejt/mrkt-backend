@@ -1,8 +1,7 @@
 .PHONY: build clean deploy
 
 build:
-	env GOOS=linux go build -ldflags="-s -w" -o bin/iex-symbols iex-symbols/main.go
-	env GOOS=linux go build -ldflags="-s -w" -o bin/batch-single-day batch-single-day/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/publish-historical-for-symbol publish-historical-for-symbol/main.go
 
 clean:
 	rm -rf ./bin

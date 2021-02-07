@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	db "github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
 )
 
 const DefaultBillingMode = db.BillingModePayPerRequest
@@ -30,6 +31,62 @@ var AttributeNameTags = []string{"attributename", "an"}
 var AttributeTypeTags = []string{"attributetype", "at"}
 
 var KeyTypeTags = []string{"keytype", "kt"}
+
+func CreateHistoricalTable(ddbClient dynamodbiface.DynamoDBAPI) (*db.CreateTableOutput, error) {
+	input := &dynamodb.CreateTableInput{
+		TableName:   aws.String("Historical"),
+		BillingMode: aws.String(DefaultBillingMode),
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("Date"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("Symbol"),
+				AttributeType: aws.String("S"),
+			},
+			{
+				AttributeName: aws.String("Open"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("High"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("Low"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("Close"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("Volume"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("Change"),
+				AttributeType: aws.String("N"),
+			},
+			{
+				AttributeName: aws.String("ChangePercent"),
+				AttributeType: aws.String("N"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("Date"),
+				KeyType:       aws.String("HASH"),
+			},
+			{
+				AttributeName: aws.String("Symbol"),
+				KeyType:       aws.String("RANGE"),
+			},
+		},
+	}
+	return ddbClient.CreateTable(input)
+}
 
 // CreateTableInputFromStruct - Generates CreateTableInput using the tags contained in the input struct s, if s is not a struct, an error is thrown
 // AttributeName: Uses the field's name

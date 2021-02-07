@@ -5,10 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
-	db "github.com/mcclurejt/mrkt-backend/api/dynamodb"
 )
 
 type Interval string
@@ -29,9 +25,6 @@ type NetUnrealizedProfitLossEntry struct {
 type NetUnrealizedProfitLossService interface {
 	Get(options *NetUnrealizedProfitLossOptions) ([]*NetUnrealizedProfitLossEntry, error)
 	GetBatch(options *NetUnrealizedProfitLossOptions, ch chan<- ResultError)
-
-	GetCreateTableInput() *dynamodb.CreateTableInput
-	GetPutItemInput() *dynamodb.PutItemInput
 }
 
 type NetUnrealizedProfitLossOptions struct {
@@ -71,39 +64,6 @@ type netUnrealizedProfitLossServicer struct {
 func newNetUnrealizedProfitLossService(base *baseClient) NetUnrealizedProfitLossService {
 	return &netUnrealizedProfitLossServicer{
 		base: base,
-	}
-}
-
-func (n netUnrealizedProfitLossServicer) GetCreateTableInput() *dynamodb.CreateTableInput {
-	return &dynamodb.CreateTableInput{
-		AttributeDefinitions: []*dynamodb.AttributeDefinition{
-			{
-				AttributeName: aws.String("Date"),
-				AttributeType: aws.String("S"),
-			},
-			{
-				AttributeName: aws.String("Symbol"),
-				AttributeType: aws.String("S"),
-			},
-		},
-		KeySchema: []*dynamodb.KeySchemaElement{
-			{
-				AttributeName: aws.String("Date"),
-				KeyType:       aws.String("HASH"),
-			},
-			{
-				AttributeName: aws.String("Symbol"),
-				KeyType:       aws.String("RANGE"),
-			},
-		},
-		BillingMode: aws.String(db.DefaultBillingMode),
-		TableName:   aws.String(nuplTableName),
-	}
-}
-
-func (n netUnrealizedProfitLossServicer) GetPutItemInput() *dynamodb.PutItemInput {
-	return &dynamodb.PutItemInput{
-		TableName: aws.String(nuplTableName),
 	}
 }
 

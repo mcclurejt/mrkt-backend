@@ -32,6 +32,12 @@ provider:
   iamRoleStatements:
     - Effect: "Allow"
       Action:
+        - dynamodb:ListTables
+        - dynamodb:DescribeTable
+        - dynamodb:DescribeStream
+        - dynamodb:GetRecords
+        - dynamodb:GetShardIterator
+        - dynamodb:ListStreams
         - dynamodb:PutItem
         - dynamodb:BatchWriteItem
       Resource: "*"
@@ -42,14 +48,14 @@ package:
     - ./bin/**
 
 functions:
-  iex-symbols:
-    handler: bin/iex-symbols
+  publish-historical-for-symbol:
+    handler: bin/publish-historical-for-symbol
+    memorySize: 128
+    timeout: 60
     events:
-      - schedule:
-          rate: cron(30 21 ? * FRI *)
-          name: "weekly-symbols-update"
-          description: "Fetch new list of symbols weekly on Friday at 4:30pm EST."
+      - stream:
+          type: dynamodb
+          batchSize: 100
           enabled: true
-  batch-single-day:
-    handler: bin/batch-single-day
-    timeout: 25
+          arn:
+            Fn::ImportValue: SymbolStreamArn
