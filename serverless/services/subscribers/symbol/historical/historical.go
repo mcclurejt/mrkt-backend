@@ -58,8 +58,16 @@ func processItem(item map[string]events.DynamoDBAttributeValue) error {
 	}
 	log.Infof("Retrieved %d historical datapoints in %.2fs", len(historical), time.Now().Sub(t).Seconds())
 	// Form the list of requests
+	var change, changePercent float64
 	writeRequests := make([]*ddb.WriteRequest, len(historical))
 	for i, data := range historical {
+		if i == 0 {
+			change = data.Close - data.Open
+			changePercent = change / data.Open
+		} else {
+			change = data.Close - historical[i-1].Close
+			changePercent = change / historical[i-1].Close
+		}
 		writeRequests[i] = &ddb.WriteRequest{
 			PutRequest: &ddb.PutRequest{
 				Item: map[string]*ddb.AttributeValue{
@@ -85,10 +93,10 @@ func processItem(item map[string]events.DynamoDBAttributeValue) error {
 						N: aws.String(fmt.Sprintf("%d", data.Volume)),
 					},
 					"Change": {
-						N: aws.String(fmt.Sprintf("%f", data.Close-data.Open)),
+						N: aws.String(fmt.Sprintf("%f", change)),
 					},
 					"ChangePercent": {
-						N: aws.String(fmt.Sprintf("%f", (data.Close-data.Open)/data.Open)),
+						N: aws.String(fmt.Sprintf("%f", changePercent)),
 					},
 				},
 			},

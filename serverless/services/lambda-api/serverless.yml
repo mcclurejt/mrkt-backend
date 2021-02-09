@@ -45,7 +45,7 @@ functions:
     events:
       - http:
           path: /symbols
-          method: get
+          method: GET
   historical:
     handler: bin/historical
     memorySize: 128
@@ -53,8 +53,12 @@ functions:
     events:
       - http:
           path: /historical/{symbol}
-          method: get
-          request:
-            parameter:
-              paths:
-                symbol: true
+          method: GET
+  company:
+    handler: bin/company
+    memorySize: 128
+    timeout: 10
+    events:
+      - http:
+          path: /company/{symbol}
+          method: GET

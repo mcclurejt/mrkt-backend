@@ -91,10 +91,10 @@ func processItem(item map[string]events.DynamoDBAttributeValue) error {
 				S: aws.String(data.Sector),
 			},
 			"PrimarySicCode": {
-				S: aws.String(fmt.Sprintf("%d", data.PrimarySICCode)),
+				N: aws.String(fmt.Sprintf("%d", data.PrimarySICCode)),
 			},
 			"Employees": {
-				S: aws.String(fmt.Sprintf("%d", data.Employees)),
+				N: aws.String(fmt.Sprintf("%d", data.Employees)),
 			},
 			"Tags": {
 				SS: aws.StringSlice(data.Tags),
