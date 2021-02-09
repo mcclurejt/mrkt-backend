@@ -28,12 +28,6 @@ provider:
   stage: dev
   region: us-west-2
 
-iamRoleStatements:
-  - Effect: "Allow"
-    Action:
-      - dynamodb:*
-    Resource: "*"
-
 package:
   exclude:
     - ./**
@@ -42,7 +36,7 @@ package:
 
 resources:
   Resources:
-    SymbolsTable:
+    Symbols:
       Type: "AWS::DynamoDB::Table"
       Properties:
         TableName: Symbols
@@ -57,10 +51,40 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    Company:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: Company
+        AttributeDefinitions:
+          - AttributeName: Symbol
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Symbol
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    Historical:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: Historical
+        AttributeDefinitions:
+          - AttributeName: Symbol
+            AttributeType: S
+          - AttributeName: Date
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Symbol
+            KeyType: HASH
+          - AttributeName: Date
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
   Outputs:
-    SymbolStreamArn:
+    SymbolsStreamARNOutput:
       Description: "Stream Arn for the Symbols dynamodb table"
       Value:
-        Fn::GetAtt: [SymbolsTable, StreamArn]
+        Fn::GetAtt: [Symbols, StreamArn]
       Export:
-        Name: "SymbolStreamArn"
+        Name: "SymbolsStreamARN"

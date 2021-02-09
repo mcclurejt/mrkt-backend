@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: subscribers
+service: lambda-api
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
@@ -23,24 +23,14 @@ frameworkVersion: "2"
 provider:
   name: aws
   runtime: go1.x
-
-  # you can overwrite defaults here
   stage: dev
   region: us-west-2
-
-  # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: "Allow"
       Action:
-        - dynamodb:ListTables
-        - dynamodb:DescribeTable
-        - dynamodb:DescribeStream
-        - dynamodb:GetRecords
-        - dynamodb:GetShardIterator
-        - dynamodb:ListStreams
-        - dynamodb:PutItem
-        - dynamodb:BatchWriteItem
+        - dynamodb:*
       Resource: "*"
+
 package:
   exclude:
     - ./**
@@ -48,25 +38,23 @@ package:
     - ./bin/**
 
 functions:
-  company:
-    handler: bin/symbol/company
+  symbols:
+    handler: bin/symbols
     memorySize: 128
-    timeout: 60
+    timeout: 10
     events:
-      - stream:
-          type: dynamodb
-          batchSize: 100
-          enabled: true
-          arn:
-            Fn::ImportValue: SymbolsStreamARN
+      - http:
+          path: /symbols
+          method: get
   historical:
-    handler: bin/symbol/historical
+    handler: bin/historical
     memorySize: 128
-    timeout: 60
+    timeout: 10
     events:
-      - stream:
-          type: dynamodb
-          batchSize: 100
-          enabled: true
-          arn:
-            Fn::ImportValue: SymbolsStreamARN
+      - http:
+          path: /historical/{symbol}
+          method: get
+          request:
+            parameter:
+              paths:
+                symbol: true

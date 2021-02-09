@@ -1,7 +1,7 @@
-.PHONY: build clean deploy
+.PHONY: clean deploy
 
 clean:
 	rm -rf ./bin
 
-deploy: clean build
+deploy: clean
 	sls deploy --verbose
