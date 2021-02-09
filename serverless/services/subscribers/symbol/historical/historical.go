@@ -63,11 +63,11 @@ func processItem(item map[string]events.DynamoDBAttributeValue) error {
 		writeRequests[i] = &ddb.WriteRequest{
 			PutRequest: &ddb.PutRequest{
 				Item: map[string]*ddb.AttributeValue{
-					"Date": {
-						S: aws.String(data.Date),
-					},
 					"Symbol": {
 						S: aws.String(symbol.String()),
+					},
+					"Date": {
+						S: aws.String(data.Date),
 					},
 					"Open": {
 						N: aws.String(fmt.Sprintf("%f", data.Open)),
@@ -128,20 +128,18 @@ func handler(e events.DynamoDBEvent) error {
 	// Loop through new records acting only on insert
 	var item map[string]events.DynamoDBAttributeValue
 	var tableName string
-	var eventID string
 	for _, v := range e.Records {
 		switch v.EventName {
-		case "INSERT", "UPDATE":
+		case "INSERT", "MODIFY":
 			tableName = strings.Split(v.EventSourceArn, "/")[1]
-			eventID = v.EventID
-			log.WithFields(logrus.Fields{"EventID": eventID}).Infof("Processing an insert/update from %s table", tableName)
+			log.WithFields(logrus.Fields{"EventID": v.EventID}).Infof("Processing a %s from %s table", v.EventName, tableName)
 			item = v.Change.NewImage
 			if err := processItem(item); err != nil {
 				return err
 			}
+			log.WithFields(logrus.Fields{"EventID": v.EventID}).Infof("Finished processing a %s from %s table", v.EventName, tableName)
 		}
 	}
-	log.WithFields(logrus.Fields{"EventID": eventID}).Infof("Finished processing an insert/update from %s table", tableName)
 	return nil
 }
 
