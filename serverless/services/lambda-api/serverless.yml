@@ -62,3 +62,11 @@ functions:
       - http:
           path: /company/{symbol}
           method: GET
+  stats:
+    handler: bin/stats
+    memorySize: 128
+    timeout: 10
+    events:
+      - http:
+          path: /stats/{symbol}
+          method: GET

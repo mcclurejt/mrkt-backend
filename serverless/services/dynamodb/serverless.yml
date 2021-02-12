@@ -81,6 +81,19 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
+    Stats:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        TableName: Stats
+        AttributeDefinitions:
+          - AttributeName: Symbol
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Symbol
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
   Outputs:
     SymbolsStreamARNOutput:
       Description: "Stream Arn for the Symbols dynamodb table"

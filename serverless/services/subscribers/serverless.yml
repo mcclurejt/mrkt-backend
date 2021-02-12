@@ -70,3 +70,14 @@ functions:
           enabled: true
           arn:
             Fn::ImportValue: SymbolsStreamARN
+  stats:
+    handler: bin/symbol/stats
+    memorySize: 128
+    timeout: 60
+    events:
+      - stream:
+          type: dynamodb
+          batchSize: 100
+          enabled: true
+          arn:
+            Fn::ImportValue: SymbolsStreamARN
