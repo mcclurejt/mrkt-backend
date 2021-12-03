@@ -14,8 +14,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	ddb "github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbiface"
-
 	iex "github.com/goinvest/iexcloud/v2"
+	"github.com/mcclurejt/mrkt-backend/config"
 
 	"github.com/sirupsen/logrus"
 )
@@ -32,7 +32,8 @@ var (
 )
 
 func init() {
-	iexClient = iex.NewClient("pk_1d8a2228abd84b0598a6cf91a5d09f63")
+	conf := config.New() //env
+	iexClient = iex.NewClient(conf.Api.IEXCloudAPIKey)
 	awsSession, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-west-2")},
 	)
